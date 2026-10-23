@@ -1,0 +1,71 @@
+name: iCapture
+options:
+  bundleIdPrefix: dev.local
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.3"
+    DEAD_CODE_STRIPPING: YES
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    ARCHS: arm64
+    ENABLE_HARDENED_RUNTIME: YES
+schemes:
+  iCapture:
+    build:
+      targets:
+        iCapture: all
+    run:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+    test:
+      config: Debug
+      targets:
+        - iCaptureTests
+targets:
+  iCapture:
+    type: application
+    platform: macOS
+    configFiles:
+      Debug: Configuration/Signing.xcconfig
+      Release: Configuration/Signing.xcconfig
+    sources:
+      - path: Sources/iCapture
+    dependencies:
+      - sdk: Security.framework
+      - sdk: ScreenCaptureKit.framework
+      - sdk: Vision.framework
+      - sdk: Carbon.framework
+      - sdk: ServiceManagement.framework
+    settings:
+      base:
+        ARCHS: arm64
+        ENABLE_HARDENED_RUNTIME: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.local.iCapture
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Resources/Info.plist
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+  iCaptureTests:
+    type: bundle.unit-test
+    platform: macOS
+    configFiles:
+      Debug: Configuration/Signing.xcconfig
+      Release: Configuration/Signing.xcconfig
+    sources:
+      - path: Tests/iCaptureTests
+      - path: Sources/iCapture/Core
+    dependencies:
+      - sdk: Security.framework
+      - sdk: Vision.framework
+      - sdk: Carbon.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.local.iCaptureTests
+        GENERATE_INFOPLIST_FILE: YES

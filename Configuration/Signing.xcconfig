@@ -1,0 +1,4 @@
+// 화면 기록 권한이 다시 빌드해도 유지되려면 매번 같은 인증서로 서명해야 한다.
+DEVELOPMENT_TEAM = QR5M2843GW
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Apple Development
