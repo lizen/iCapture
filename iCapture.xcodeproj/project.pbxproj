@@ -10,12 +10,17 @@
 		05EDFA6CAB9760ED7DA75615 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21E516BBC4BC9C219832F515 /* Security.framework */; };
 		096E1EF30DB3CAC1F9EC15C6 /* RecognitionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */; };
 		1429B83999A71A8D2015F988 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93BD8DA0AB93F474D731D68B /* ServiceManagement.framework */; };
+		2E3921EDAB7AC9442E6EA640 /* KindTagParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */; };
 		3033C7A62653B4DA58F35436 /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6712FE5929E888401AEEFB9 /* Vision.framework */; };
+		3EA785DD3BE271DFEDF6C4D7 /* KindTagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9696DE98D817600C258DA0D6 /* KindTagParser.swift */; };
 		473442931A0AA4CE915F3600 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB65EB84F2FED760E61E9EB /* StatusMenuController.swift */; };
 		4900487986DD6C62E2D4597A /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21E516BBC4BC9C219832F515 /* Security.framework */; };
+		50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */; };
 		522DEE734A13E4237A96C975 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */; };
+		63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9696DE98D817600C258DA0D6 /* KindTagParser.swift */; };
 		64691EE8A0CDCCC562F1554A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */; };
 		6A32F1AE842DEBE15D3B11E7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */; };
+		7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */; };
 		A10C498C5ED9A4B9ACD40A4E /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6712FE5929E888401AEEFB9 /* Vision.framework */; };
 		B899D34640290E2D50C3D7AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90ED2471E87E8A4548D6286 /* AppDelegate.swift */; };
 		CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */; };
@@ -26,8 +31,11 @@
 /* Begin PBXFileReference section */
 		21E516BBC4BC9C219832F515 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		37DD0238EF625E290E5E9CD7 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindTagParserTests.swift; sourceTree = "<group>"; };
+		4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionPrompt.swift; sourceTree = "<group>"; };
 		8E506E58A1154879FBE07006 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
 		93BD8DA0AB93F474D731D68B /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
+		9696DE98D817600C258DA0D6 /* KindTagParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindTagParser.swift; sourceTree = "<group>"; };
 		97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		A6712FE5929E888401AEEFB9 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
 		A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
@@ -68,6 +76,8 @@
 		31D0D66905CFD6A0EFF5A1B5 /* Recognition */ = {
 			isa = PBXGroup;
 			children = (
+				9696DE98D817600C258DA0D6 /* KindTagParser.swift */,
+				4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */,
 				BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */,
 			);
 			path = Recognition;
@@ -119,6 +129,7 @@
 		84543D2ECC5BF3E4C727B991 /* iCaptureTests */ = {
 			isa = PBXGroup;
 			children = (
+				44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */,
 				A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */,
 			);
 			path = iCaptureTests;
@@ -247,6 +258,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */,
+				2E3921EDAB7AC9442E6EA640 /* KindTagParserTests.swift in Sources */,
+				50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */,
 				CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */,
 				522DEE734A13E4237A96C975 /* SmokeTests.swift in Sources */,
 			);
@@ -257,7 +271,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				B899D34640290E2D50C3D7AE /* AppDelegate.swift in Sources */,
+				3EA785DD3BE271DFEDF6C4D7 /* KindTagParser.swift in Sources */,
 				ED7B9EB17AFAF16CF713FD4E /* Main.swift in Sources */,
+				7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */,
 				096E1EF30DB3CAC1F9EC15C6 /* RecognitionTypes.swift in Sources */,
 				473442931A0AA4CE915F3600 /* StatusMenuController.swift in Sources */,
 			);
