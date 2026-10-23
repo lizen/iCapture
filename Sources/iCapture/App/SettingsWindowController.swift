@@ -53,6 +53,12 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         model.onSetLaunchAtLogin = { [weak self] enabled in self?.setLaunchAtLogin(enabled) }
     }
 
+    /// 앱이 끝나기 직전에 부른다. 종료는 `windowWillClose`를 거치지 않으므로 입력 중인 키·주소를 여기서 확정한다.
+    func commitPending() {
+        guard window?.isVisible == true else { return }
+        commit()
+    }
+
     func show() {
         let window = window ?? makeWindow()
         // 이미 떠 있으면 고치던 값을 지키려고 다시 읽지 않는다.
@@ -94,13 +100,18 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private func commit() {
         var nativChanged = false
-        if model.claudeKey != savedClaudeKey {
-            writeKey(model.claudeKey, account: KeychainStore.claudeAccount)
-            savedClaudeKey = model.claudeKey
+        // 붙여 넣을 때 딸려 온 공백·줄바꿈은 키가 아니다.
+        let claudeKey = model.claudeKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        let nativKey = model.nativKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        if model.claudeKey != claudeKey { model.claudeKey = claudeKey }
+        if model.nativKey != nativKey { model.nativKey = nativKey }
+        if claudeKey != savedClaudeKey {
+            writeKey(claudeKey, account: KeychainStore.claudeAccount)
+            savedClaudeKey = claudeKey
         }
-        if model.nativKey != savedNativKey {
-            writeKey(model.nativKey, account: KeychainStore.nativAccount)
-            savedNativKey = model.nativKey
+        if nativKey != savedNativKey {
+            writeKey(nativKey, account: KeychainStore.nativAccount)
+            savedNativKey = nativKey
             nativChanged = true
         }
         // 잘못된 주소는 무시하고 이전 값으로 되돌려 보여 준다.

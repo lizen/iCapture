@@ -75,6 +75,13 @@ final class AppCoordinator: NSObject {
         }
     }
 
+    /// 앱이 끝나기 직전에 부른다. 미뤄 둔 편집을 저장하고, 돌고 있는 세션은 취소해 받은 만큼을 이력에 남기고
+    /// (텍스트 없이 취소되면 이전 결과를 지킨다), 설정 창에 입력 중인 키를 확정한다.
+    func prepareForTermination() {
+        finishCurrentSession()
+        settingsWindow.commitPending()
+    }
+
     /// 이력 항목을 세션 없이 결과 창에 다시 연다. 텍스트는 바로 편집할 수 있다.
     func reopen(_ entry: HistoryEntry) {
         finishCurrentSession()

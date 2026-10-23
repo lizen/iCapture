@@ -9,4 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         coordinator.start()
         self.coordinator = coordinator
     }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        coordinator?.prepareForTermination()
+    }
 }
