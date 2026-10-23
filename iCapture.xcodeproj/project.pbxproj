@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		05EDFA6CAB9760ED7DA75615 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21E516BBC4BC9C219832F515 /* Security.framework */; };
 		096E1EF30DB3CAC1F9EC15C6 /* RecognitionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */; };
+		12287111830F7969D476C6B7 /* ClaudeEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8921B823946A38773408DC92 /* ClaudeEngineTests.swift */; };
 		1429B83999A71A8D2015F988 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93BD8DA0AB93F474D731D68B /* ServiceManagement.framework */; };
 		2E3921EDAB7AC9442E6EA640 /* KindTagParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */; };
 		3033C7A62653B4DA58F35436 /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6712FE5929E888401AEEFB9 /* Vision.framework */; };
@@ -17,26 +18,46 @@
 		4900487986DD6C62E2D4597A /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21E516BBC4BC9C219832F515 /* Security.framework */; };
 		50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */; };
 		522DEE734A13E4237A96C975 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */; };
+		6099D1D2F5A96C6FCDD44D1C /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AEB834F646432428C05355 /* ImageEncoder.swift */; };
 		63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9696DE98D817600C258DA0D6 /* KindTagParser.swift */; };
 		64691EE8A0CDCCC562F1554A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */; };
 		6A32F1AE842DEBE15D3B11E7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */; };
+		71B954A670F2446B227A2022 /* TestImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF010741F7548B3E7DD91900 /* TestImages.swift */; };
+		75C88222B2DEA807438B560C /* ClaudeFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */; };
 		7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */; };
+		92FEF75B415375134832CD26 /* Collect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005E32E1F6EAE1D1C43DF18A /* Collect.swift */; };
+		934A9BA2CF2C48E55799D98E /* SSEParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */; };
+		9E417DEF6A02EA691D4C342D /* SSEParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */; };
 		A10C498C5ED9A4B9ACD40A4E /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6712FE5929E888401AEEFB9 /* Vision.framework */; };
+		A693FCB3A3215C60FBA61D31 /* ImageEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A348F5DCF69052EF49F7AE81 /* ImageEncoderTests.swift */; };
 		B899D34640290E2D50C3D7AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90ED2471E87E8A4548D6286 /* AppDelegate.swift */; };
+		C80513680C08BF47167182C1 /* SSEParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */; };
 		CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */; };
 		D3A8B73FF3143E04406DC52C /* ScreenCaptureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A71FF4987837223AADC9F148 /* ScreenCaptureKit.framework */; };
+		E3346EFFC1E0A5FF58860347 /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */; };
 		ED7B9EB17AFAF16CF713FD4E /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E506E58A1154879FBE07006 /* Main.swift */; };
+		F2D4E2A97AAE29B9196C3077 /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AEB834F646432428C05355 /* ImageEncoder.swift */; };
+		F897B997E7D2FB988EB5C0F1 /* ClaudeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */; };
+		FBC8084D938A82ABB38DECCA /* ClaudeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		005E32E1F6EAE1D1C43DF18A /* Collect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collect.swift; sourceTree = "<group>"; };
+		00AEB834F646432428C05355 /* ImageEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEncoder.swift; sourceTree = "<group>"; };
 		21E516BBC4BC9C219832F515 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEParserTests.swift; sourceTree = "<group>"; };
 		37DD0238EF625E290E5E9CD7 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindTagParserTests.swift; sourceTree = "<group>"; };
 		4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionPrompt.swift; sourceTree = "<group>"; };
+		51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeEngine.swift; sourceTree = "<group>"; };
+		696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
+		8921B823946A38773408DC92 /* ClaudeEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeEngineTests.swift; sourceTree = "<group>"; };
+		8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeFixtures.swift; sourceTree = "<group>"; };
 		8E506E58A1154879FBE07006 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
 		93BD8DA0AB93F474D731D68B /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = System/Library/Frameworks/ServiceManagement.framework; sourceTree = SDKROOT; };
 		9696DE98D817600C258DA0D6 /* KindTagParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindTagParser.swift; sourceTree = "<group>"; };
 		97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		A348F5DCF69052EF49F7AE81 /* ImageEncoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEncoderTests.swift; sourceTree = "<group>"; };
 		A6712FE5929E888401AEEFB9 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
 		A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		A71FF4987837223AADC9F148 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
@@ -45,6 +66,8 @@
 		BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionTypes.swift; sourceTree = "<group>"; };
 		C90ED2471E87E8A4548D6286 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CAB65EB84F2FED760E61E9EB /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
+		CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEParser.swift; sourceTree = "<group>"; };
+		CF010741F7548B3E7DD91900 /* TestImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestImages.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,9 +99,12 @@
 		31D0D66905CFD6A0EFF5A1B5 /* Recognition */ = {
 			isa = PBXGroup;
 			children = (
+				51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */,
+				00AEB834F646432428C05355 /* ImageEncoder.swift */,
 				9696DE98D817600C258DA0D6 /* KindTagParser.swift */,
 				4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */,
 				BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */,
+				CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */,
 			);
 			path = Recognition;
 			sourceTree = "<group>";
@@ -129,8 +155,12 @@
 		84543D2ECC5BF3E4C727B991 /* iCaptureTests */ = {
 			isa = PBXGroup;
 			children = (
+				8921B823946A38773408DC92 /* ClaudeEngineTests.swift */,
+				A348F5DCF69052EF49F7AE81 /* ImageEncoderTests.swift */,
 				44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */,
 				A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */,
+				2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */,
+				C81B95FEF049D14769562EEA /* Support */,
 			);
 			path = iCaptureTests;
 			sourceTree = "<group>";
@@ -156,6 +186,17 @@
 				AD12615DA424883588B385A5 /* Frameworks */,
 				D0B99C97193CD3F8366686EE /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		C81B95FEF049D14769562EEA /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */,
+				005E32E1F6EAE1D1C43DF18A /* Collect.swift */,
+				696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */,
+				CF010741F7548B3E7DD91900 /* TestImages.swift */,
+			);
+			path = Support;
 			sourceTree = "<group>";
 		};
 		D0B99C97193CD3F8366686EE /* Products */ = {
@@ -258,11 +299,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F897B997E7D2FB988EB5C0F1 /* ClaudeEngine.swift in Sources */,
+				12287111830F7969D476C6B7 /* ClaudeEngineTests.swift in Sources */,
+				75C88222B2DEA807438B560C /* ClaudeFixtures.swift in Sources */,
+				92FEF75B415375134832CD26 /* Collect.swift in Sources */,
+				6099D1D2F5A96C6FCDD44D1C /* ImageEncoder.swift in Sources */,
+				A693FCB3A3215C60FBA61D31 /* ImageEncoderTests.swift in Sources */,
 				63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */,
 				2E3921EDAB7AC9442E6EA640 /* KindTagParserTests.swift in Sources */,
 				50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */,
 				CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */,
+				934A9BA2CF2C48E55799D98E /* SSEParser.swift in Sources */,
+				9E417DEF6A02EA691D4C342D /* SSEParserTests.swift in Sources */,
 				522DEE734A13E4237A96C975 /* SmokeTests.swift in Sources */,
+				E3346EFFC1E0A5FF58860347 /* StubURLProtocol.swift in Sources */,
+				71B954A670F2446B227A2022 /* TestImages.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,10 +322,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				B899D34640290E2D50C3D7AE /* AppDelegate.swift in Sources */,
+				FBC8084D938A82ABB38DECCA /* ClaudeEngine.swift in Sources */,
+				F2D4E2A97AAE29B9196C3077 /* ImageEncoder.swift in Sources */,
 				3EA785DD3BE271DFEDF6C4D7 /* KindTagParser.swift in Sources */,
 				ED7B9EB17AFAF16CF713FD4E /* Main.swift in Sources */,
 				7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */,
 				096E1EF30DB3CAC1F9EC15C6 /* RecognitionTypes.swift in Sources */,
+				C80513680C08BF47167182C1 /* SSEParser.swift in Sources */,
 				473442931A0AA4CE915F3600 /* StatusMenuController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
