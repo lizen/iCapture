@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 기본 엔진, Claude API 키, Nativ 서버 주소·API 키, 캡처 단축키, 로그인할 때 자동 실행.
+/// 기본 엔진, Claude API 키, 로컬 서버(Nativ·vLLM) 주소·API 키, 캡처 단축키, 로그인할 때 자동 실행.
 struct SettingsView: View {
     @ObservedObject var model: SettingsModel
     @ObservedObject var settings: AppSettings
@@ -18,9 +18,9 @@ struct SettingsView: View {
             }
 
             Section {
-                TextField("Nativ 서버 주소", text: $model.nativURLText)
+                TextField("로컬 서버 주소 (Nativ·vLLM)", text: $model.nativURLText)
                     .onSubmit { model.onCommit?() }
-                SecureField("Nativ API 키 (선택)", text: $model.nativKey)
+                SecureField("로컬 서버 API 키 (선택)", text: $model.nativKey)
                     .onSubmit { model.onCommit?() }
             }
 

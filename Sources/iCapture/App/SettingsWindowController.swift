@@ -17,9 +17,9 @@ final class SettingsModel: ObservableObject {
     var onToggleRecording: (() -> Void)?
     var onSetLaunchAtLogin: ((Bool) -> Void)?
 
-    /// Claude 두 개 + Nativ 모델들. 지금 고른 엔진이 목록에 없으면(예: Nativ가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
+    /// 로컬(자동) + Claude 두 개 + 로컬 서버의 모델들. 지금 고른 엔진이 목록에 없으면(예: 로컬 서버가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
     func engineOptions(selected: EngineChoice) -> [EngineChoice] {
-        var options = ResultModel.claudeChoices + nativModelIDs.map { EngineChoice.nativ(modelID: $0) }
+        var options = ResultModel.baseChoices + nativModelIDs.map { EngineChoice.nativ(modelID: $0) }
         if !options.contains(selected) { options.append(selected) }
         return options
     }
@@ -134,7 +134,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         }
     }
 
-    /// 엔진 Picker용. 받지 못하면 Nativ 항목 없이 둔다.
+    /// 엔진 Picker용. 받지 못하면 로컬 서버의 모델 항목 없이 둔다.
     private func refreshNativModels() {
         nativModelsTask?.cancel()
         let baseURL = settings.nativBaseURL

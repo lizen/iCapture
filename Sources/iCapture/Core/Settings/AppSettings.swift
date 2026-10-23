@@ -1,6 +1,6 @@
 import Foundation
 
-/// 엔진 선택·Nativ 주소·단축키. 값이 바뀌면 곧바로 UserDefaults에 저장한다.
+/// 엔진 선택·로컬 서버(Nativ·vLLM) 주소·단축키. 값이 바뀌면 곧바로 UserDefaults에 저장한다.
 /// 저장된 값이 없거나 읽을 수 없으면 기본값을 쓴다.
 @MainActor
 final class AppSettings: ObservableObject {
@@ -20,7 +20,7 @@ final class AppSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        engine = Self.load(EngineChoice.self, forKey: "engine", from: defaults) ?? .claude(.sonnet)
+        engine = Self.load(EngineChoice.self, forKey: "engine", from: defaults) ?? .localAuto
         nativBaseURL = defaults.string(forKey: "nativBaseURL").flatMap(Self.validatedNativBaseURL) ?? Self.defaultNativBaseURL
         hotKey = Self.load(HotKeyCombo.self, forKey: "hotKey", from: defaults) ?? .default
     }

@@ -36,13 +36,17 @@
 21. "로그인할 때 자동 실행" 토글이 동작한다.
 22. 빌더가 정한 문구(검색 자리표시, 빈 목록, 설정 라벨, 창 제목 "이력"/"설정", 다시 연 항목의 상태 줄, 메뉴의 "(텍스트 없음)")가 어색하지 않은지 본다.
 
-## 2. 정확도 측정 (유료)
+## 2. 정확도 측정
+
+기본은 로컬 서버만 재서 비용이 들지 않는다.
 
 ```bash
-ICAPTURE_ACCURACY=1 ANTHROPIC_API_KEY=... make accuracy
+ICAPTURE_ACCURACY=1 make -C ~/github/iCapture accuracy
 ```
 
-fixture 9장 × Sonnet·Haiku = 요청 18회. 결과는 `build/accuracy-report.md`. 스펙 8장 기준(SQL·로그에서 표시 없는 오류 0)에 못 미치면 지시문, 이미지 전처리, effort, 검사 호출 같은 다음 수단을 함께 정한다.
+- 로컬 서버 주소·모델을 바꾸려면 `LOCAL_BASE_URL=http://127.0.0.1:8000`(vLLM 등), `LOCAL_MODEL=<모델 id>`, `LOCAL_API_KEY=<키>`를 앞에 붙인다. 모델을 안 주면 메모리에 올라간 비전 모델을 고른다.
+- Claude도 비교하려면 `ANTHROPIC_API_KEY`를 함께 준다(요청 18회, API 비용 발생).
+- 결과는 `build/accuracy-report.md`. 엔진마다 스펙 8장 기준(SQL·로그에서 표시 없는 오류 0) 판정이 나온다. 못 미치면 지시문, 이미지 전처리, 다른 모델 같은 다음 수단을 함께 정한다.
 
 ## 3. 나중에 처리할 작은 개선점
 

@@ -19,7 +19,7 @@ final class AppSettingsTests: XCTestCase {
 
     func testDefaults() {
         let s = AppSettings(defaults: freshDefaults())
-        XCTAssertEqual(s.engine, .claude(.sonnet))
+        XCTAssertEqual(s.engine, .localAuto)
         XCTAssertEqual(s.nativBaseURL.absoluteString, "http://127.0.0.1:8080")
         XCTAssertEqual(s.hotKey, .default)
     }
@@ -43,7 +43,7 @@ final class AppSettingsTests: XCTestCase {
         defaults.set(Data("not json".utf8), forKey: "hotKey")
         defaults.set("", forKey: "nativBaseURL")
         let s = AppSettings(defaults: defaults)
-        XCTAssertEqual(s.engine, .claude(.sonnet))
+        XCTAssertEqual(s.engine, .localAuto)
         XCTAssertEqual(s.nativBaseURL.absoluteString, "http://127.0.0.1:8080")
         XCTAssertEqual(s.hotKey, .default)
     }

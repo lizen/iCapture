@@ -1,8 +1,9 @@
 import XCTest
 
 /// 정답이 있는 검증 세트에 진짜 엔진을 돌려 정확도와 시간을 재는 측정 도구.
-/// 실제 API 비용이 들기 때문에 `ICAPTURE_ACCURACY=1`일 때만 돈다(`make accuracy`).
-/// 통과/실패 기준은 두지 않고 `build/accuracy-report.md`에 보고만 한다. 기준을 판단하는 건 사람이다.
+/// 시간이 오래 걸려서 `ICAPTURE_ACCURACY=1`일 때만 돈다(`make accuracy`).
+/// 기본은 로컬 서버(Nativ·vLLM)만 재서 비용이 들지 않는다. `ANTHROPIC_API_KEY`를 주면 Claude도 잰다(API 비용 발생).
+/// 테스트는 실패로 끝나지 않고 `build/accuracy-report.md`에 엔진별 판정을 적는다. 기준을 판단하는 건 사람이다.
 @MainActor
 final class AccuracyTests: XCTestCase {
     private struct Entry: Decodable {
@@ -34,12 +35,14 @@ final class AccuracyTests: XCTestCase {
             environment["ICAPTURE_ACCURACY"] == "1",
             "정확도 측정은 API 비용이 들어요. ICAPTURE_ACCURACY=1 ANTHROPIC_API_KEY=… make accuracy 로 실행해 주세요."
         )
-        guard let apiKey = environment["ANTHROPIC_API_KEY"], !apiKey.isEmpty else {
-            XCTFail("ICAPTURE_ACCURACY=1 이지만 ANTHROPIC_API_KEY가 비어 있어요. 키를 넣고 다시 실행해 주세요.")
+        let engines: [any RecognitionEngine]
+        do {
+            engines = try await Self.engines(environment)
+        } catch {
+            let message = (error as? RecognitionError)?.userMessage ?? String(describing: error)
+            XCTFail("로컬 모델을 준비하지 못했어요: \(message) LOCAL_BASE_URL·LOCAL_MODEL을 확인해 주세요.")
             return
         }
-
-        let engines = Self.engines(apiKey: apiKey, nativModel: environment["NATIV_MODEL"])
         let manifestURL = try XCTUnwrap(
             Bundle(for: Self.self).url(forResource: "manifest", withExtension: "json"), "manifest.json이 번들에 없어요")
         let entries = try JSONDecoder().decode([Entry].self, from: Data(contentsOf: manifestURL))
@@ -68,26 +71,27 @@ final class AccuracyTests: XCTestCase {
     /// 환경 변수 없이 도는 보고서 판정 검사. 실패·부분 결과가 기준 통과로 세어지지 않아야 한다.
     func testCriterionCountsFailedAndPartialRowsAsFailing() {
         let sonnet = EngineChoice.claude(.sonnet).displayName
+        func lines(_ rows: [Row]) -> String { Self.criterionLines(rows, engine: sonnet).joined(separator: "\n") }
         func row(_ name: String, accuracy: Double = 1, unmarked: Int = 0, failure: String? = nil, engine: String? = nil) -> Row {
             Row(fixture: name, kind: "sql", engine: engine ?? sonnet, detectedKind: .sql, exact: accuracy == 1 && failure == nil,
                 charAccuracy: accuracy, unmarkedErrors: unmarked, seconds: 1, failure: failure)
         }
 
-        let clean = Self.criterionLines([row("clean")]).joined(separator: "\n")
+        let clean = lines([row("clean")])
         XCTAssertTrue(clean.contains("모든 SQL·로그 fixture(1장)"), clean)
 
-        let failed = Self.criterionLines([row("ok"), row("down", accuracy: 0, failure: "요청이 몰려")]).joined(separator: "\n")
+        let failed = lines([row("ok"), row("down", accuracy: 0, failure: "요청이 몰려")])
         XCTAssertTrue(failed.contains("down(실패: 요청이 몰려)"), failed)
         XCTAssertFalse(failed.contains("모든 SQL·로그"), failed)
 
-        let partial = Self.criterionLines([row("cut", accuracy: 0.4)]).joined(separator: "\n")
+        let partial = lines([row("cut", accuracy: 0.4)])
         XCTAssertTrue(partial.contains("cut(글자 일치율 40.0%"), partial)
         XCTAssertFalse(partial.contains("모든 SQL·로그"), partial)
 
-        let unmarked = Self.criterionLines([row("typo", accuracy: 0.99, unmarked: 2)]).joined(separator: "\n")
+        let unmarked = lines([row("typo", accuracy: 0.99, unmarked: 2)])
         XCTAssertTrue(unmarked.contains("typo(표시 없는 오류 2자)"), unmarked)
 
-        let otherEngine = Self.criterionLines([row("haiku-only", accuracy: 0, failure: "x", engine: "Claude Haiku 5.5")]).joined(separator: "\n")
+        let otherEngine = lines([row("haiku-only", accuracy: 0, failure: "x", engine: "Claude Haiku 5.5")])
         XCTAssertTrue(otherEngine.contains("판정할 SQL·로그 결과가 없어요"), otherEngine)
     }
 
@@ -195,13 +199,18 @@ final class AccuracyTests: XCTestCase {
 
     // MARK: - 입력과 출력
 
-    private static func engines(apiKey: String, nativModel: String?) -> [any RecognitionEngine] {
-        var engines: [any RecognitionEngine] = [
-            ClaudeEngine(model: .sonnet, apiKey: apiKey),
-            ClaudeEngine(model: .haiku, apiKey: apiKey),
-        ]
-        if let nativModel, !nativModel.isEmpty {
-            engines.append(NativEngine(baseURL: AppSettings.defaultNativBaseURL, modelID: nativModel, apiKey: nil))
+    /// 로컬 서버는 늘 잰다. 모델을 정하지 않으면 앱과 같은 방식으로 서버 목록에서 고른다.
+    /// `ANTHROPIC_API_KEY`가 있으면 Claude 두 모델도 함께 잰다.
+    private static func engines(_ environment: [String: String]) async throws -> [any RecognitionEngine] {
+        let baseURL = environment["LOCAL_BASE_URL"].flatMap(AppSettings.validatedNativBaseURL) ?? AppSettings.defaultNativBaseURL
+        let localKey = environment["LOCAL_API_KEY"]
+        var model = environment["LOCAL_MODEL"] ?? environment["NATIV_MODEL"] ?? ""
+        if model.isEmpty {
+            model = NativModels.preferredVisionModel(try await NativModels.list(baseURL: baseURL, apiKey: localKey))
+        }
+        var engines: [any RecognitionEngine] = [NativEngine(baseURL: baseURL, modelID: model, apiKey: localKey)]
+        if let apiKey = environment["ANTHROPIC_API_KEY"], !apiKey.isEmpty {
+            engines += [ClaudeEngine(model: .sonnet, apiKey: apiKey), ClaudeEngine(model: .haiku, apiKey: apiKey)]
         }
         return engines
     }
@@ -244,21 +253,20 @@ final class AccuracyTests: XCTestCase {
             lines.append("| \(engine) | \(mine.filter(\.exact).count)/\(mine.count) | \(percent(average)) | \(mine.map(\.unmarkedErrors).reduce(0, +)) | \(String(format: "%.1f", seconds)) |")
         }
 
-        lines += criterionLines(rows)
+        for engine in engines { lines += criterionLines(rows, engine: engine) }
         return lines.joined(separator: "\n") + "\n"
     }
 
-    /// 스펙 8장 기준(SQL·로그, Sonnet 5.5: 표시 없는 오류 0) 판정 줄. 실패한 행과 글자 일치율이 바닥 아래인 행도 미달로 센다.
-    static func criterionLines(_ rows: [Row]) -> [String] {
-        let sonnetName = EngineChoice.claude(.sonnet).displayName
-        let codeRows = rows.filter { $0.engine == sonnetName && ($0.kind == "sql" || $0.kind == "log") }
+    /// 스펙 8장 기준(SQL·로그: 표시 없는 오류 0)을 엔진 하나에 대해 판정한다. 실패한 행과 글자 일치율이 바닥 아래인 행도 미달로 센다.
+    static func criterionLines(_ rows: [Row], engine: String) -> [String] {
+        let codeRows = rows.filter { $0.engine == engine && ($0.kind == "sql" || $0.kind == "log") }
         let failing: [String] = codeRows.compactMap { row in
             if let failure = row.failure { return "\(row.fixture)(실패: \(failure))" }
             if row.unmarkedErrors > 0 { return "\(row.fixture)(표시 없는 오류 \(row.unmarkedErrors)자)" }
             if row.charAccuracy < accuracyFloor { return "\(row.fixture)(글자 일치율 \(percent(row.charAccuracy)), 누락 의심)" }
             return nil
         }
-        var lines = ["", "## 스펙 8장 기준 (SQL·로그, Sonnet 5.5: 표시 없는 오류 0)", ""]
+        var lines = ["", "## 스펙 8장 기준 — \(engine) (SQL·로그: 표시 없는 오류 0)", ""]
         if codeRows.isEmpty {
             lines.append("판정할 SQL·로그 결과가 없어요.")
         } else if failing.isEmpty {

@@ -5,16 +5,17 @@ import SwiftUI
 /// 결과 창이 보여 줄 상태. 진행 중인 세션이 있으면 그 변경을 그대로 전달해 화면을 다시 그리게 한다.
 @MainActor
 final class ResultModel: ObservableObject {
-    static let claudeChoices: [EngineChoice] = [.claude(.sonnet), .claude(.haiku)]
+    /// 로컬 모델(자동)을 맨 앞에 둔다. 기본 엔진이고 비용이 들지 않는다.
+    static let baseChoices: [EngineChoice] = [.localAuto, .claude(.sonnet), .claude(.haiku)]
 
     @Published var image: NSImage?
     /// 이력에서 다시 열었을 때는 nil이다(돌고 있는 세션 없음).
     @Published private(set) var session: RecognitionSession?
     /// 세션 없이 이력을 열었을 때 상태 줄에 보여 줄 엔진 이름.
     @Published var historyEngineName = ""
-    @Published var engineOptions: [EngineChoice] = ResultModel.claudeChoices
+    @Published var engineOptions: [EngineChoice] = ResultModel.baseChoices
     /// "다시 인식"에만 쓴다. `settings.engine`은 바꾸지 않는다.
-    @Published var selectedEngine: EngineChoice = .claude(.sonnet)
+    @Published var selectedEngine: EngineChoice = .localAuto
     /// "검사 건너뛰기"를 누른 뒤에는 OCR이 끝날 때까지 `.verifying`이 남아 있어서 버튼을 따로 막는다.
     @Published var skipPressed = false
     @Published var canRecognizeAgain = false
@@ -36,9 +37,9 @@ final class ResultModel: ObservableObject {
         }
     }
 
-    /// Claude 두 개 + Nativ 모델들. 지금 고른 엔진이 목록에 없으면(예: Nativ가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
+    /// 로컬(자동) + Claude 두 개 + 로컬 서버의 모델들. 지금 고른 엔진이 목록에 없으면(예: 로컬 서버가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
     func setNativModels(_ ids: [String]) {
-        var options = Self.claudeChoices + ids.map { EngineChoice.nativ(modelID: $0) }
+        var options = Self.baseChoices + ids.map { EngineChoice.nativ(modelID: $0) }
         if !options.contains(selectedEngine) { options.append(selectedEngine) }
         engineOptions = options
     }

@@ -1,7 +1,9 @@
 import Foundation
 
+/// Nativ·vLLM 같은 OpenAI 호환 로컬 서버. `modelID`가 비어 있으면 인식할 때 `NativModels.preferredVisionModel`로 고른다.
 struct NativEngine: RecognitionEngine {
-    static let maxTokens = 16000
+    /// vLLM은 프롬프트 + `max_tokens`가 모델 문맥 길이를 넘으면 400을 돌려준다. 화면 캡처 한 장의 텍스트는 이 안에 들어간다.
+    static let maxTokens = 4096
     /// 로컬 모델은 큰 이미지에서 첫 토큰까지 1분을 넘기기도 해서 기본값(60초)보다 길게 기다린다.
     static let requestTimeout: TimeInterval = 300
 
@@ -20,8 +22,12 @@ struct NativEngine: RecognitionEngine {
     var choice: EngineChoice { .nativ(modelID: modelID) }
 
     func makeRequest(png: Data) throws -> URLRequest {
+        try makeRequest(png: png, model: modelID)
+    }
+
+    func makeRequest(png: Data, model: String) throws -> URLRequest {
         let body: [String: Any] = [
-            "model": modelID,
+            "model": model,
             "stream": true,
             "max_tokens": Self.maxTokens,
             "messages": [
@@ -46,7 +52,11 @@ struct NativEngine: RecognitionEngine {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    let request = try makeRequest(png: png)
+                    let model = modelID.isEmpty
+                        ? NativModels.preferredVisionModel(
+                            try await NativModels.list(baseURL: baseURL, apiKey: apiKey, session: session))
+                        : modelID
+                    let request = try makeRequest(png: png, model: model)
                     try await stream(request, into: continuation)
                     continuation.finish()
                 } catch is CancellationError {
@@ -136,10 +146,25 @@ enum NativModels {
             throw RecognitionError.nativHTTPFailure(status: http.statusCode, body: data)
         }
 
-        let entries = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["data"] as? [[String: Any]]
-        let ids = (entries ?? []).compactMap { $0["id"] as? String }
+        let entries = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["data"] as? [[String: Any]] ?? []
+        // Nativ는 받아 둔 모델을 모두 알려 주고 `loaded`로 메모리에 올라간 것을 표시한다. 올라간 모델을 앞에 둔다.
+        let loaded = entries.filter { $0["loaded"] as? Bool == true }
+        let others = entries.filter { $0["loaded"] as? Bool != true }
+        let ids = (loaded + others).compactMap { $0["id"] as? String }
         if ids.isEmpty { throw RecognitionError.noNativModel }
         return ids
+    }
+
+    /// 이름으로 보아 이미지를 읽을 수 있는 모델을 먼저 고르고, 없으면 첫 모델을 쓴다.
+    /// Nativ는 언어·임베딩·음성 모델을 함께 올려 둘 수 있어서 목록의 첫 모델이 비전 모델이 아닐 수 있다.
+    /// `ids`는 비어 있지 않다(`list`가 빈 목록이면 던진다).
+    static func preferredVisionModel(_ ids: [String]) -> String {
+        let hints = ["vl", "vision", "llava", "pixtral", "gemma-3", "gemma3", "idefics", "smolvlm", "minicpm-v", "molmo"]
+        let notChat = ["embed", "rerank", "whisper", "tts"]
+        return ids.first { id in
+            let name = id.lowercased()
+            return hints.contains { name.contains($0) } && !notChat.contains { name.contains($0) }
+        } ?? ids[0]
     }
 
     static func makeRequest(baseURL: URL, apiKey: String?) -> URLRequest {

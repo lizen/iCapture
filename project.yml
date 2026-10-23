@@ -43,6 +43,12 @@ schemes:
           value: $(ANTHROPIC_API_KEY)
         - variable: NATIV_MODEL
           value: $(NATIV_MODEL)
+        - variable: LOCAL_MODEL
+          value: $(LOCAL_MODEL)
+        - variable: LOCAL_BASE_URL
+          value: $(LOCAL_BASE_URL)
+        - variable: LOCAL_API_KEY
+          value: $(LOCAL_API_KEY)
 targets:
   iCapture:
     type: application

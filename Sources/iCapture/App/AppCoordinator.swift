@@ -314,7 +314,7 @@ final class AppCoordinator: NSObject {
         refreshNativModels()
     }
 
-    /// 창을 열 때마다 Nativ 모델 목록을 다시 받는다. 실패하면 Nativ 항목 없이 둔다.
+    /// 창을 열 때마다 로컬 서버의 모델 목록을 다시 받는다. 실패하면 그 모델 항목 없이 둔다.
     private func refreshNativModels() {
         nativModelsTask?.cancel()
         let baseURL = settings.nativBaseURL

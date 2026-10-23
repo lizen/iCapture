@@ -24,7 +24,7 @@ final class NativEngineTests: XCTestCase {
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(req.httpBody)) as? [String: Any])
         XCTAssertEqual(body["model"] as? String, "qwen-vl")
         XCTAssertEqual(body["stream"] as? Bool, true)
-        XCTAssertEqual(body["max_tokens"] as? Int, 16000)
+        XCTAssertEqual(body["max_tokens"] as? Int, 4096)
         XCTAssertNil(body["temperature"])
         let messages = try XCTUnwrap(body["messages"] as? [[String: Any]])
         XCTAssertEqual(messages[0]["role"] as? String, "system")
@@ -98,7 +98,7 @@ final class NativEngineTests: XCTestCase {
         StubURLProtocol.respond(status: 401, body: #"{"error":{"message":"bad key"}}"#)
         await assertStreamThrows(.nativHTTP(status: 401, message: "bad key"))
         XCTAssertEqual(RecognitionError.nativHTTP(status: 401, message: "x").userMessage,
-                       "Nativ API 키가 올바르지 않아요. 설정에서 확인해 주세요.")
+                       "로컬 서버 API 키가 올바르지 않아요. 설정에서 확인해 주세요.")
         XCTAssertEqual(RecognitionError.nativHTTP(status: 500, message: "boom").userMessage,
                        "인식 중 오류가 났어요 (500): boom")
         XCTAssertEqual(RecognitionError.nativHTTP(status: 429, message: "busy").userMessage,
@@ -164,6 +164,30 @@ final class NativEngineTests: XCTestCase {
             XCTFail("에러가 나야 한다", file: file, line: line)
         } catch {
             XCTAssertEqual(error as? RecognitionError, expected, file: file, line: line)
+        }
+    }
+
+    func testPreferredVisionModelPicksVisionLookingID() {
+        XCTAssertEqual(NativModels.preferredVisionModel(["bge-m3", "Qwen2.5-VL-7B-Instruct", "llama-3"]), "Qwen2.5-VL-7B-Instruct")
+        XCTAssertEqual(NativModels.preferredVisionModel(["mlx-community/gemma-3-12b-it", "whisper"]), "mlx-community/gemma-3-12b-it")
+        XCTAssertEqual(NativModels.preferredVisionModel(["only-model"]), "only-model")
+        XCTAssertEqual(NativModels.preferredVisionModel(["Qwen3-VL-Embedding-2B", "Qwen3-VL-30B-Instruct"]), "Qwen3-VL-30B-Instruct")
+    }
+
+    func testListPutsLoadedModelsFirst() async throws {
+        StubURLProtocol.respond(status: 200, body: #"{"data":[{"id":"coder","loaded":false},{"id":"Qwen3-VL-30B","loaded":true},{"id":"Qwen3-VL-Embedding","loaded":false}]}"#)
+        let ids = try await NativModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
+        XCTAssertEqual(ids, ["Qwen3-VL-30B", "coder", "Qwen3-VL-Embedding"])
+    }
+
+    func testAutoModelWithUnreachableServerReportsUnreachable() async {
+        StubURLProtocol.fail(URLError(.cannotConnectToHost))
+        let auto = NativEngine(baseURL: baseURL, modelID: "", apiKey: nil, session: .stubbed)
+        do {
+            _ = try await collect(auto.recognize(png: Data()))
+            XCTFail("expected error")
+        } catch {
+            XCTAssertEqual(error as? RecognitionError, .nativUnreachable(url: "http://127.0.0.1:8080"))
         }
     }
 }
