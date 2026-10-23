@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 final class NativEngineTests: XCTestCase {
     private let baseURL = URL(string: "http://127.0.0.1:8080")!

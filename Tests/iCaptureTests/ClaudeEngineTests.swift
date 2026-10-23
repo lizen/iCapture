@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 final class ClaudeEngineTests: XCTestCase {
     private func body(of request: URLRequest) throws -> [String: Any] {

@@ -1,7 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
 import XCTest
-@testable import iCapture
 
 final class HotKeyComboTests: XCTestCase {
     private func event(keyCode: UInt16, flags: NSEvent.ModifierFlags) -> NSEvent {

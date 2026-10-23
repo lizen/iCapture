@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 final class VisionOCRTests: XCTestCase {
     func testVisionReadsRenderedText() async throws {

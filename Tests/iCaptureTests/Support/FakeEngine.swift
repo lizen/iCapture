@@ -1,6 +1,5 @@
 import Foundation
 import XCTest
-@testable import iCapture
 
 /// 정해 둔 이벤트를 차례로 내보내고, `thenThrow`가 있으면 그 오류로 끝나는 가짜 엔진.
 /// `gate`가 있으면 이벤트를 하나 내기 전마다 `gate.wait()`로 멈춰서 테스트가 한 단계씩 풀어 준다.

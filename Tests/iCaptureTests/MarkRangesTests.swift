@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 final class MarkRangesTests: XCTestCase {
     func testAdjustShiftsLaterMarks() {

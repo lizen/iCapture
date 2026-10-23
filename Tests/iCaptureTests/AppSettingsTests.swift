@@ -1,6 +1,5 @@
 import Carbon.HIToolbox
 import XCTest
-@testable import iCapture
 
 @MainActor
 final class AppSettingsTests: XCTestCase {

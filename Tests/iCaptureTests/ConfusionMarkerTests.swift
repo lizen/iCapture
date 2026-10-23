@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 final class ConfusionMarkerTests: XCTestCase {
     func testMarksL1Disagreement() {

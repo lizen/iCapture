@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 final class CaptureGeometryTests: XCTestCase {
     func testFlipsToTopLeftLocal() {

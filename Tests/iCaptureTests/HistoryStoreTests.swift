@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 extension HistoryEntry {
     static func fixture(text: String, at: Date = .now) -> HistoryEntry {

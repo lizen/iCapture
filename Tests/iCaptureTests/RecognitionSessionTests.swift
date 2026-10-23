@@ -1,5 +1,4 @@
 import XCTest
-@testable import iCapture
 
 @MainActor
 final class RecognitionSessionTests: XCTestCase {

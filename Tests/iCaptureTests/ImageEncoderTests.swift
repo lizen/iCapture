@@ -1,6 +1,5 @@
 import AppKit
 import XCTest
-@testable import iCapture
 
 final class ImageEncoderTests: XCTestCase {
     func testDownscalesUntilUnderByteLimit() throws {
