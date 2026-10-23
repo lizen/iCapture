@@ -1,0 +1,15 @@
+-- 회원 목록 조회 (탈퇴하지 않은 회원만)
+select m.mem_id, m.mem_nm, m.level, m.del_yn
+  from tb_member m
+ where m.del_yn = 'N'
+   and m.level >= 1
+   and m.mem_nm like '%김%'
+   and m.grp_cd in ('I1', 'l1', 'O0', '0O')
+ order by m.level desc, m.mem_id;
+
+-- 1차 집계: 등급별 회원 수
+select level, count(*) as cnt
+  from tb_member
+ where del_yn = 'N'
+ group by level
+having count(*) > 10;

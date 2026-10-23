@@ -1,0 +1,8 @@
+2026-10-23 09:12:07,315 - batch.sync - ERROR - 동기화 중 오류 (row_id=l0O1)
+Traceback (most recent call last):
+  File "/Users/dev/project/batch/sync.py", line 142, in run
+    result = self.client.fetch(row_id)
+  File "/Users/dev/project/batch/client.py", line 58, in fetch
+    raise TimeoutError(f"서버 응답 없음: {url}")
+TimeoutError: 서버 응답 없음: http://10.0.1.15:8081/api/v1/rows/l0O1
+2026-10-23 09:12:07,320 - batch.sync - INFO - 다음 작업으로 넘어갑니다 (남은 건수: 1,024)

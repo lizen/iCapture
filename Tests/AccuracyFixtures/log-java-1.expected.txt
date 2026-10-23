@@ -1,0 +1,10 @@
+2026-10-23 14:05:31.482 ERROR [http-nio-8080-exec-7] c.e.order.OrderService - 주문 처리 실패: ordNo=1O42
+java.lang.NullPointerException: Cannot invoke "String.length()" because "memNm" is null
+    at com.example.order.OrderService.process(OrderService.java:217)
+    at com.example.order.OrderController.create(OrderController.java:88)
+    at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+    at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:1011)
+Caused by: java.sql.SQLException: ORA-01400: cannot insert NULL into ("SCOTT"."TB_ORDER"."MEM_NM")
+    at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:509)
+    ... 42 common frames omitted
+2026-10-23 14:05:31.490 WARN  [http-nio-8080-exec-7] c.e.order.OrderService - 재시도 1/3 (대기 500ms)

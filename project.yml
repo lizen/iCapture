@@ -28,6 +28,21 @@ schemes:
       config: Debug
       targets:
         - iCaptureTests
+  iCaptureAccuracy:
+    build:
+      targets:
+        iCaptureAccuracyTests: [test]
+    test:
+      config: Debug
+      targets:
+        - iCaptureAccuracyTests
+      environmentVariables:
+        - variable: ICAPTURE_ACCURACY
+          value: $(ICAPTURE_ACCURACY)
+        - variable: ANTHROPIC_API_KEY
+          value: $(ANTHROPIC_API_KEY)
+        - variable: NATIV_MODEL
+          value: $(NATIV_MODEL)
 targets:
   iCapture:
     type: application
@@ -68,4 +83,23 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.local.iCaptureTests
+        GENERATE_INFOPLIST_FILE: YES
+  iCaptureAccuracyTests:
+    type: bundle.unit-test
+    platform: macOS
+    configFiles:
+      Debug: Configuration/Signing.xcconfig
+      Release: Configuration/Signing.xcconfig
+    sources:
+      - path: Tests/iCaptureAccuracyTests
+      - path: Sources/iCapture/Core
+      - path: Tests/AccuracyFixtures
+        buildPhase: resources
+    dependencies:
+      - sdk: Security.framework
+      - sdk: Vision.framework
+      - sdk: Carbon.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.local.iCaptureAccuracyTests
         GENERATE_INFOPLIST_FILE: YES

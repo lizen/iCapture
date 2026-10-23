@@ -1,0 +1,15 @@
+-- 부서 계층 조회 (최상위 부서부터)
+select lpad(' ', 2 * (level - 1)) || dept_nm as dept_tree,
+       level as lvl,
+       del_yn
+  from tb_dept
+ start with up_dept_id is null
+connect by prior dept_id = up_dept_id
+   and del_yn = 'N'
+ order siblings by sort_no;
+
+-- 사번 I001, l001, 1001, O001, 0001 구분 확인
+select emp_no, emp_nm
+  from tb_emp
+ where emp_no in ('I001', 'l001', '1001', 'O001', '0001')
+   and ret_yn <> 'Y';

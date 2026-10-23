@@ -1,0 +1,13 @@
+-- 상태 코드 변환 (O: 주문, 0: 미정, l: 로그, 1: 완료)
+select ord_no,
+       case stat_cd
+         when 'O' then '주문'
+         when '0' then '미정'
+         when 'l' then '로그'
+         when '1' then '완료'
+         else '알 수 없음'
+       end as stat_nm,
+       nvl(del_yn, 'N') as del_yn
+  from tb_order
+ where reg_dt >= trunc(sysdate) - 7
+ order by ord_no desc;

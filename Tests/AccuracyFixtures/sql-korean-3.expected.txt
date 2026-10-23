@@ -1,0 +1,16 @@
+insert into tb_notice (notice_id, title, content, reg_dt, del_yn)
+values (seq_notice.nextval, '시스템 점검 안내', '10월 1일 02:00~04:00 점검 예정입니다.', sysdate, 'N');
+
+update tb_member
+   set level = level + 1,
+       upd_dt = sysdate
+ where mem_id = 'user_l01'
+   and del_yn = 'N';
+
+select o.ord_no, o.ord_amt, c.cust_nm
+  from tb_order o
+  join tb_cust c on c.cust_id = o.cust_id
+ where o.ord_dt between to_date('2026-01-01', 'YYYY-MM-DD')
+                    and to_date('2026-12-31', 'YYYY-MM-DD')
+   and o.ord_amt >= 100000
+   and c.cust_nm like '%이%';

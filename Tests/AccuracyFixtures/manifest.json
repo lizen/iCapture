@@ -1,0 +1,11 @@
+[
+  { "name": "sql-korean-1", "kind": "sql", "render": "text", "font": "Menlo", "pointSize": 13, "theme": "light" },
+  { "name": "sql-korean-2", "kind": "sql", "render": "text", "font": "Menlo", "pointSize": 13, "theme": "dark" },
+  { "name": "sql-korean-3", "kind": "sql", "render": "text", "font": "Menlo", "pointSize": 11, "theme": "light" },
+  { "name": "sql-korean-4", "kind": "sql", "render": "text", "font": "Menlo", "pointSize": 11, "theme": "dark" },
+  { "name": "log-java-1", "kind": "log", "render": "text", "font": "Menlo", "pointSize": 12, "theme": "light" },
+  { "name": "log-python-1", "kind": "log", "render": "text", "font": "Menlo", "pointSize": 12, "theme": "dark" },
+  { "name": "table-1", "kind": "table", "render": "html", "font": "system", "pointSize": 14, "theme": "light" },
+  { "name": "excel-1", "kind": "table", "render": "html", "font": "system", "pointSize": 13, "theme": "light", "layout": "excel" },
+  { "name": "small-dark-1", "kind": "sql", "render": "text", "font": "Menlo", "pointSize": 10, "theme": "dark" }
+]

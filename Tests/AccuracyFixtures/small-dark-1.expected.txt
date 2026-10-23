@@ -1,0 +1,6 @@
+select a.id, a.level, b.del_yn, b.cd_nm
+  from tb_a a, tb_b b
+ where a.id = b.id
+   and a.del_yn = 'N' -- 삭제되지 않은 행
+   and b.cd in ('l0', '10', 'I0', 'O1')
+ order by a.level, a.id;
