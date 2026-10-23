@@ -10,7 +10,7 @@ final class AccuracyTests: XCTestCase {
         let kind: String
     }
 
-    private struct Row {
+    struct Row {
         let fixture: String
         let kind: String
         let engine: String
@@ -21,6 +21,9 @@ final class AccuracyTests: XCTestCase {
         let seconds: TimeInterval
         let failure: String?
     }
+
+    /// 글자 일치율이 이 값 아래면 누락·잘림이 있는 것으로 보고 기준 미달로 센다(누락은 `unmarkedErrors`에 안 잡힌다).
+    static let accuracyFloor = 0.95
 
     /// 한 장을 이 시간 안에 못 끝내면 취소하고 실패로 적는다.
     private static let timeoutSeconds = 180.0
@@ -60,6 +63,32 @@ final class AccuracyTests: XCTestCase {
 
         XCTAssertEqual(rows.count, entries.count * engines.count, "fixture × 엔진마다 결과가 한 줄씩 있어야 해요")
         XCTAssertTrue(FileManager.default.fileExists(atPath: reportURL.path), "보고서 파일이 써지지 않았어요: \(reportURL.path)")
+    }
+
+    /// 환경 변수 없이 도는 보고서 판정 검사. 실패·부분 결과가 기준 통과로 세어지지 않아야 한다.
+    func testCriterionCountsFailedAndPartialRowsAsFailing() {
+        let sonnet = EngineChoice.claude(.sonnet).displayName
+        func row(_ name: String, accuracy: Double = 1, unmarked: Int = 0, failure: String? = nil, engine: String? = nil) -> Row {
+            Row(fixture: name, kind: "sql", engine: engine ?? sonnet, detectedKind: .sql, exact: accuracy == 1 && failure == nil,
+                charAccuracy: accuracy, unmarkedErrors: unmarked, seconds: 1, failure: failure)
+        }
+
+        let clean = Self.criterionLines([row("clean")]).joined(separator: "\n")
+        XCTAssertTrue(clean.contains("모든 SQL·로그 fixture(1장)"), clean)
+
+        let failed = Self.criterionLines([row("ok"), row("down", accuracy: 0, failure: "요청이 몰려")]).joined(separator: "\n")
+        XCTAssertTrue(failed.contains("down(실패: 요청이 몰려)"), failed)
+        XCTAssertFalse(failed.contains("모든 SQL·로그"), failed)
+
+        let partial = Self.criterionLines([row("cut", accuracy: 0.4)]).joined(separator: "\n")
+        XCTAssertTrue(partial.contains("cut(글자 일치율 40.0%"), partial)
+        XCTAssertFalse(partial.contains("모든 SQL·로그"), partial)
+
+        let unmarked = Self.criterionLines([row("typo", accuracy: 0.99, unmarked: 2)]).joined(separator: "\n")
+        XCTAssertTrue(unmarked.contains("typo(표시 없는 오류 2자)"), unmarked)
+
+        let otherEngine = Self.criterionLines([row("haiku-only", accuracy: 0, failure: "x", engine: "Claude Haiku 5.5")]).joined(separator: "\n")
+        XCTAssertTrue(otherEngine.contains("판정할 SQL·로그 결과가 없어요"), otherEngine)
     }
 
     // MARK: - 측정
@@ -189,13 +218,15 @@ final class AccuracyTests: XCTestCase {
             .appendingPathComponent("build/accuracy-report.md")
     }
 
-    private static func percent(_ value: Double) -> String { String(format: "%.1f%%", value * 100) }
+    static func percent(_ value: Double) -> String { String(format: "%.1f%%", value * 100) }
 
     private static func report(_ rows: [Row], engines: [String]) -> String {
         var lines = [
             "# 정확도 측정 보고서",
             "",
             "측정 시각: \(Date().formatted(.iso8601))",
+            "",
+            "> 글자가 빠진 경우는 `표시 없는 오류`에 잡히지 않고 `글자 일치율`에만 나타나요. `완전 일치`는 엄격해서 끝의 줄바꿈 하나도 다른 것으로 봐요.",
             "",
             "| fixture | 종류 | 엔진 | 감지한 종류 | 완전 일치 | 글자 일치율 | 표시 없는 오류 | 시간(초) | 비고 |",
             "|---|---|---|---|---|---|---|---|---|",
@@ -213,16 +244,28 @@ final class AccuracyTests: XCTestCase {
             lines.append("| \(engine) | \(mine.filter(\.exact).count)/\(mine.count) | \(percent(average)) | \(mine.map(\.unmarkedErrors).reduce(0, +)) | \(String(format: "%.1f", seconds)) |")
         }
 
-        let sonnet = ClaudeModel.sonnet
-        let sonnetName = EngineChoice.claude(sonnet).displayName
+        lines += criterionLines(rows)
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    /// 스펙 8장 기준(SQL·로그, Sonnet 5.5: 표시 없는 오류 0) 판정 줄. 실패한 행과 글자 일치율이 바닥 아래인 행도 미달로 센다.
+    static func criterionLines(_ rows: [Row]) -> [String] {
+        let sonnetName = EngineChoice.claude(.sonnet).displayName
         let codeRows = rows.filter { $0.engine == sonnetName && ($0.kind == "sql" || $0.kind == "log") }
-        let failing = codeRows.filter { $0.unmarkedErrors > 0 }
-        lines += ["", "## 스펙 8장 기준 (SQL·로그, Sonnet 5.5: 표시 없는 오류 0)", ""]
-        if failing.isEmpty {
+        let failing: [String] = codeRows.compactMap { row in
+            if let failure = row.failure { return "\(row.fixture)(실패: \(failure))" }
+            if row.unmarkedErrors > 0 { return "\(row.fixture)(표시 없는 오류 \(row.unmarkedErrors)자)" }
+            if row.charAccuracy < accuracyFloor { return "\(row.fixture)(글자 일치율 \(percent(row.charAccuracy)), 누락 의심)" }
+            return nil
+        }
+        var lines = ["", "## 스펙 8장 기준 (SQL·로그, Sonnet 5.5: 표시 없는 오류 0)", ""]
+        if codeRows.isEmpty {
+            lines.append("판정할 SQL·로그 결과가 없어요.")
+        } else if failing.isEmpty {
             lines.append("모든 SQL·로그 fixture(\(codeRows.count)장)에서 표시 없는 오류가 0이에요.")
         } else {
-            lines.append("기준에 못 미친 fixture: " + failing.map { "\($0.fixture)(\($0.unmarkedErrors)자)" }.joined(separator: ", "))
+            lines.append("기준에 못 미친 fixture: " + failing.joined(separator: ", "))
         }
-        return lines.joined(separator: "\n") + "\n"
+        return lines
     }
 }
