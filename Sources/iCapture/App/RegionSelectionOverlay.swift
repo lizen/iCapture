@@ -5,6 +5,7 @@ import AppKit
 final class RegionSelectionOverlay {
     private var panel: OverlayPanel?
     private var continuation: CheckedContinuation<CGRect?, Never>?
+    private var observers: [NSObjectProtocol] = []
 
     /// 반환하는 rect는 AppKit 전역 좌표(왼쪽 아래 원점, 포인트). esc나 너무 작은 영역이면 nil.
     func selectRegion() async -> (rect: CGRect, screen: NSScreen)? {
@@ -38,6 +39,8 @@ final class RegionSelectionOverlay {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.ignoresMouseEvents = false
+        // NSPanel은 기본값이 true라 앱이 비활성화되면 조용히 숨는다. 숨기지 않고 아래 관찰자로 취소한다.
+        panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
 
@@ -46,6 +49,7 @@ final class RegionSelectionOverlay {
         panel.contentView = view
 
         self.panel = panel
+        observeDeactivation(of: panel)
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
         panel.makeFirstResponder(view)
@@ -57,7 +61,21 @@ final class RegionSelectionOverlay {
         continuation.resume(returning: rect)
     }
 
+    /// 앱이 비활성화되거나 패널이 key를 잃으면 선택을 취소한다. 그렇지 않으면 continuation이 영영 resume되지 않는다.
+    private func observeDeactivation(of panel: NSPanel) {
+        let center = NotificationCenter.default
+        let cancel: @Sendable (Notification) -> Void = { [weak self] _ in
+            MainActor.assumeIsolated { self?.finish(with: nil) }
+        }
+        observers = [
+            center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main, using: cancel),
+            center.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main, using: cancel),
+        ]
+    }
+
     private func dismiss() {
+        observers.forEach(NotificationCenter.default.removeObserver)
+        observers = []
         panel?.orderOut(nil)
         panel = nil
     }
