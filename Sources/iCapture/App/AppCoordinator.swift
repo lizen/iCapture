@@ -11,6 +11,8 @@ final class AppCoordinator: NSObject {
     private let hotKeyMonitor = HotKeyMonitor()
     private let overlay = RegionSelectionOverlay()
     private let resultWindow = ResultWindowController()
+    private let historyWindow: HistoryWindowController
+    private let settingsWindow: SettingsWindowController
     private var statusMenu: StatusMenuController?
 
     private var session: RecognitionSession?
@@ -26,8 +28,12 @@ final class AppCoordinator: NSObject {
         self.settings = settings
         self.history = history
         self.keychain = keychain
+        historyWindow = HistoryWindowController(history: history)
+        settingsWindow = SettingsWindowController(settings: settings, keychain: keychain)
         super.init()
         wireResultWindow()
+        wireHistoryWindow()
+        wireSettingsWindow()
     }
 
     func start() {
@@ -43,7 +49,7 @@ final class AppCoordinator: NSObject {
         statusMenu = menu
         refreshRecentEntries()
 
-        registerHotKey()
+        applyHotKey(settings.hotKey)
         warmUpVision()
     }
 
@@ -258,8 +264,24 @@ final class AppCoordinator: NSObject {
         refreshRecentEntries()
     }
 
+    /// 이력을 쓴 뒤마다 부른다. 메뉴의 최근 목록과 (떠 있으면) 이력 창을 다시 읽힌다.
     private func refreshRecentEntries() {
         statusMenu?.recentEntries = (try? history.entries()) ?? []
+        historyWindow.reloadIfVisible()
+    }
+
+    /// 지운 항목은 다시 저장하지 않는다. 결과 창의 텍스트는 남지만 이력과는 끊긴다.
+    private func clearHistory() {
+        cancelPendingEditSave()
+        currentEntry = nil
+        currentPNG = nil
+        resultWindow.model.canRecognizeAgain = false
+        do {
+            try history.clear()
+        } catch {
+            NSLog("iCapture 이력 비우기 실패: %@", String(describing: error))
+        }
+        refreshRecentEntries()
     }
 
     // MARK: - 결과 창
@@ -301,12 +323,27 @@ final class AppCoordinator: NSObject {
 
     // MARK: - 단축키·알림
 
-    private func registerHotKey() {
-        let combo = settings.hotKey
+    private func registerCaptureHotKey(_ combo: HotKeyCombo) throws {
+        try hotKeyMonitor.register(combo) { [weak self] in self?.captureRegion() }
+    }
+
+    /// 실행할 때와 설정 창의 녹화가 끝날 때 부른다. `settings.hotKey`는 등록에 성공한 조합만 갖는다.
+    /// 실패하면(`register`가 먼저 해제하므로 단축키가 없는 상태) 이전 조합을 다시 등록하고 알린다.
+    private func applyHotKey(_ combo: HotKeyCombo) {
+        let previous = settings.hotKey
         do {
-            try hotKeyMonitor.register(combo) { [weak self] in self?.captureRegion() }
+            try registerCaptureHotKey(combo)
+            settings.hotKey = combo
+            statusMenu?.setCaptureShortcut(combo)
         } catch {
             NSLog("iCapture 단축키 등록 실패: %@", String(describing: error))
+            if combo != previous {
+                do {
+                    try registerCaptureHotKey(previous)
+                } catch {
+                    NSLog("iCapture 이전 단축키 복원 실패: %@", String(describing: error))
+                }
+            }
             Task { [weak self] in self?.showHotKeyConflictAlert(combo) }
         }
     }
@@ -331,14 +368,29 @@ final class AppCoordinator: NSObject {
         ScreenRecordingPermission.openSystemSettings()
     }
 
-    // MARK: - 이력·설정 창 (Task 11b)
+    // MARK: - 이력·설정 창
+
+    private func wireHistoryWindow() {
+        let model = historyWindow.model
+        model.onOpenInResult = { [weak self] entry in self?.reopen(entry) }
+        model.onClear = { [weak self] in self?.clearHistory() }
+    }
+
+    private func wireSettingsWindow() {
+        // 녹화 중에는 전역 단축키를 내려서 지금 조합을 눌러도 캡처가 뜨지 않게 한다.
+        settingsWindow.onHotKeyRecordingStarted = { [weak self] in self?.hotKeyMonitor.unregister() }
+        settingsWindow.onHotKeyRecordingEnded = { [weak self] combo in
+            guard let self else { return }
+            self.applyHotKey(combo ?? self.settings.hotKey)
+        }
+    }
 
     @objc private func showHistory() {
-        // Task 11b
+        historyWindow.show()
     }
 
     @objc private func showSettings() {
-        // Task 11b
+        settingsWindow.show()
     }
 
     // MARK: - 메인 메뉴

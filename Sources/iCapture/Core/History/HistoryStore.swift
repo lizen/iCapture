@@ -16,6 +16,12 @@ struct HistoryEntry: Codable, Identifiable, Equatable, Sendable {
         return ""
     }
 
+    /// 이력 창 검색. 대소문자를 가리지 않고 text에 query가 들어 있는지 본다. 빈 칸(공백만 있음 포함)이면 모두 맞는다.
+    func matches(_ query: String) -> Bool {
+        let query = query.trimmingCharacters(in: .whitespaces)
+        return query.isEmpty || text.localizedStandardContains(query)
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id, capturedAt, kind, engineName, text
     }

@@ -21,10 +21,16 @@ final class AppSettings: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         engine = Self.load(EngineChoice.self, forKey: "engine", from: defaults) ?? .claude(.sonnet)
-        nativBaseURL = defaults.string(forKey: "nativBaseURL").flatMap { URL(string: $0) }.flatMap {
-            $0.scheme != nil && $0.host != nil ? $0 : nil
-        } ?? Self.defaultNativBaseURL
+        nativBaseURL = defaults.string(forKey: "nativBaseURL").flatMap(Self.validatedNativBaseURL) ?? Self.defaultNativBaseURL
         hotKey = Self.load(HotKeyCombo.self, forKey: "hotKey", from: defaults) ?? .default
+    }
+
+    /// 앞뒤 공백을 지운 뒤 http·https 주소이고 호스트가 있을 때만 URL을 돌려준다. 아니면 nil(설정 창은 이전 값을 지킨다).
+    static func validatedNativBaseURL(_ text: String) -> URL? {
+        guard let url = URL(string: text.trimmingCharacters(in: .whitespaces)),
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty else { return nil }
+        return url
     }
 
     private func save<T: Encodable>(_ value: T, forKey key: String) {

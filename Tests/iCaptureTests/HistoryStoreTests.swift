@@ -122,6 +122,20 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertFalse(String(decoding: json, as: UTF8.self).contains("firstLine"))
     }
 
+    func testMatchesSearchIgnoringCase() {
+        let entry = HistoryEntry.fixture(text: "SELECT id\nFROM Users WHERE 이름 = '홍길동'")
+        XCTAssertTrue(entry.matches("users"))
+        XCTAssertTrue(entry.matches("from users"))
+        XCTAssertTrue(entry.matches("길동"))
+        XCTAssertFalse(entry.matches("orders"))
+    }
+
+    func testEmptyOrBlankQueryMatchesEverything() {
+        let entry = HistoryEntry.fixture(text: "")
+        XCTAssertTrue(entry.matches(""))
+        XCTAssertTrue(entry.matches("   "))
+    }
+
     func testDefaultDirectory() {
         XCTAssertEqual(HistoryStore.defaultDirectory.path, NSHomeDirectory() + "/github/iCapture/hist")
     }

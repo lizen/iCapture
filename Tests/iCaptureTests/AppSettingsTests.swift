@@ -48,4 +48,18 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(s.nativBaseURL.absoluteString, "http://127.0.0.1:8080")
         XCTAssertEqual(s.hotKey, .default)
     }
+    func testValidatedNativBaseURL() {
+        XCTAssertEqual(AppSettings.validatedNativBaseURL("http://192.168.0.5:9000")?.absoluteString, "http://192.168.0.5:9000")
+        XCTAssertEqual(AppSettings.validatedNativBaseURL("  https://nativ.local  ")?.absoluteString, "https://nativ.local")
+        XCTAssertNil(AppSettings.validatedNativBaseURL(""))
+        XCTAssertNil(AppSettings.validatedNativBaseURL("127.0.0.1:8080"))
+        XCTAssertNil(AppSettings.validatedNativBaseURL("ftp://127.0.0.1"))
+        XCTAssertNil(AppSettings.validatedNativBaseURL("http://"))
+    }
+
+    func testInvalidStoredNativURLFallsBackToDefault() {
+        let defaults = freshDefaults()
+        defaults.set("127.0.0.1:8080", forKey: "nativBaseURL")
+        XCTAssertEqual(AppSettings(defaults: defaults).nativBaseURL.absoluteString, "http://127.0.0.1:8080")
+    }
 }
