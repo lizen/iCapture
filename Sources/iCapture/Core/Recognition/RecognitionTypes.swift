@@ -51,8 +51,11 @@ enum RecognitionError: Error, Equatable, Sendable {
     case http(status: Int, message: String)
     case refusal
     case truncated
+    /// Nativ 서버가 200이 아닌 응답을 줬다. 401은 Claude가 아니라 Nativ 키를 안내해야 해서 `.http`와 나눈다.
+    case nativHTTP(status: Int, message: String)
     case nativUnreachable(url: String)
     case noNativModel
+    case timedOut
     case network(String)
 
     var userMessage: String {
@@ -61,9 +64,11 @@ enum RecognitionError: Error, Equatable, Sendable {
             "설정에서 Claude API 키를 입력해 주세요."
         case .http(401, _):
             "Claude API 키가 올바르지 않아요. 설정에서 확인해 주세요."
+        case .nativHTTP(401, _):
+            "Nativ API 키가 올바르지 않아요. 설정에서 확인해 주세요."
         case .http(429, _), .http(529, _):
             "요청이 몰려 잠시 처리할 수 없어요. 잠시 후 다시 인식해 주세요."
-        case .http(let status, let message):
+        case .http(let status, let message), .nativHTTP(let status, let message):
             "인식 중 오류가 났어요 (\(status)): \(message)"
         case .refusal:
             "모델이 이 이미지의 처리를 거절했어요. 다른 엔진으로 다시 인식해 보세요."
@@ -73,6 +78,8 @@ enum RecognitionError: Error, Equatable, Sendable {
             "Nativ 서버(\(url))에 연결할 수 없어요. Nativ에서 서버를 켜 주세요."
         case .noNativModel:
             "Nativ에 올라간 모델이 없어요. Nativ에서 이미지를 읽을 수 있는 모델을 올려 주세요."
+        case .timedOut:
+            "응답이 너무 오래 걸려요. 잠시 후 다시 인식해 주세요."
         case .network(let message):
             "네트워크 오류: \(message)"
         }
@@ -82,10 +89,19 @@ enum RecognitionError: Error, Equatable, Sendable {
 extension RecognitionError {
     /// 200이 아닌 응답의 본문으로 에러를 만든다. 본문이 `{"error":{"message":…}}`면 그 메시지를, 아니면 본문 문자열을 쓴다.
     static func httpFailure(status: Int, body: Data) -> RecognitionError {
+        .http(status: status, message: errorMessage(from: body))
+    }
+
+    /// Nativ 서버용. 본문 해석은 `httpFailure`와 같다.
+    static func nativHTTPFailure(status: Int, body: Data) -> RecognitionError {
+        .nativHTTP(status: status, message: errorMessage(from: body))
+    }
+
+    private static func errorMessage(from body: Data) -> String {
         if let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
            let message = (json["error"] as? [String: Any])?["message"] as? String {
-            return .http(status: status, message: message)
+            return message
         }
-        return .http(status: status, message: String(decoding: body, as: UTF8.self))
+        return String(decoding: body, as: UTF8.self)
     }
 }
