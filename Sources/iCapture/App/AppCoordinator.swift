@@ -192,7 +192,7 @@ final class AppCoordinator: NSObject {
         }
         text.isEditable = true
 
-        if var entry = currentEntry, entry.id == entryID {
+        if var entry = currentEntry, entry.id == entryID, phase.shouldReplaceStoredResult(text: session.text) {
             entry.text = session.text
             entry.kind = session.kind
             entry.engineName = session.engineChoice.displayName

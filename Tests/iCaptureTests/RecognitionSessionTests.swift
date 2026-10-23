@@ -204,6 +204,20 @@ final class RecognitionSessionTests: XCTestCase {
         await s.waitUntilFinished()
         XCTAssertEqual(s.text, "a")
     }
+
+    func testShouldReplaceStoredResult() {
+        XCTAssertTrue(RecognitionPhase.done.shouldReplaceStoredResult(text: ""))
+        XCTAssertTrue(RecognitionPhase.done.shouldReplaceStoredResult(text: "SELECT 1"))
+        XCTAssertTrue(RecognitionPhase.cancelled.shouldReplaceStoredResult(text: "SELECT"))
+        XCTAssertTrue(RecognitionPhase.failed(.truncated).shouldReplaceStoredResult(text: "SELECT"))
+        // 텍스트 없이 실패·취소되면 이전 결과를 지킨다(Ruling 14).
+        XCTAssertFalse(RecognitionPhase.cancelled.shouldReplaceStoredResult(text: ""))
+        XCTAssertFalse(RecognitionPhase.failed(.missingAPIKey).shouldReplaceStoredResult(text: ""))
+        // 진행 중에는 저장하지 않는다.
+        for phase in [RecognitionPhase.reading, .receiving, .verifying] {
+            XCTAssertFalse(phase.shouldReplaceStoredResult(text: "SELECT 1"))
+        }
+    }
 }
 
 @MainActor

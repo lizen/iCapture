@@ -5,6 +5,18 @@ enum RecognitionPhase: Equatable, Sendable {
     case reading, receiving, verifying, done, failed(RecognitionError), cancelled
 }
 
+extension RecognitionPhase {
+    /// 이 단계로 끝난 세션의 결과(text·kind·엔진)로 이력 항목을 덮어써야 하는지.
+    /// 텍스트 없이 실패·취소되면 이전 결과를 지킨다(Ruling 14). 진행 중이면 false.
+    func shouldReplaceStoredResult(text: String) -> Bool {
+        switch self {
+        case .done: true
+        case .failed, .cancelled: !text.isEmpty
+        case .reading, .receiving, .verifying: false
+        }
+    }
+}
+
 /// 캡처 한 장의 인식 과정을 맡는 상태 기계.
 /// 엔진 스트림과 내장 OCR을 함께 돌리고, 끝나면 헷갈린 글자·검사로 바뀐 글자 표시를 계산한다.
 @MainActor final class RecognitionSession: ObservableObject {
