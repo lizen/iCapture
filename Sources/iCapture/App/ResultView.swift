@@ -4,7 +4,8 @@ import SwiftUI
 /// 왼쪽 캡처 이미지, 오른쪽 도구 막대 / 텍스트 / 상태 줄. 진행 중에는 맨 위에 얇은 진행 막대가 흐른다.
 struct ResultView: View {
     @ObservedObject var model: ResultModel
-    let textView: PlainTextView
+    /// 표시 개수("확인 필요 N곳")가 사용자 편집을 따라가도록 지켜본다.
+    @ObservedObject var text: RecognizedTextController
 
     private var phase: RecognitionPhase? { model.session?.phase }
 
@@ -76,7 +77,7 @@ struct ResultView: View {
     }
 
     private var textArea: some View {
-        ResultTextArea(textView: textView, caretText: phase == .receiving ? model.session?.text : nil)
+        ResultTextArea(textView: text.textView, caretText: phase == .receiving ? model.session?.text : nil)
             .opacity(phase == .verifying ? 0.5 : 1)
             .overlay(alignment: .topLeading) {
                 if phase == .reading { SkeletonLines().padding(14) }
@@ -88,14 +89,18 @@ struct ResultView: View {
         Group {
             if let session = model.session, session.isRunning {
                 TimelineView(.periodic(from: .now, by: 0.1)) { context in
-                    StatusLine(session: session, historyEngineName: model.historyEngineName, now: context.date)
+                    StatusLine(session: session, historyEngineName: model.historyEngineName, marks: markCounts, now: context.date)
                 }
             } else {
-                StatusLine(session: model.session, historyEngineName: model.historyEngineName, now: Date())
+                StatusLine(session: model.session, historyEngineName: model.historyEngineName, marks: markCounts, now: Date())
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
+    }
+
+    private var markCounts: (confusion: Int, revision: Int) {
+        (text.confusionMarks.count, text.revisionMarks.count)
     }
 }
 
@@ -104,6 +109,8 @@ struct ResultView: View {
 private struct StatusLine: View {
     let session: RecognitionSession?
     let historyEngineName: String
+    /// 텍스트 영역의 지금 표시 개수. 세션의 값은 완료 시점에 고정이라 사용자가 고친 뒤를 반영하지 못한다.
+    let marks: (confusion: Int, revision: Int)
     let now: Date
 
     var body: some View {
@@ -137,8 +144,8 @@ private struct StatusLine: View {
             return "정밀 검사 중… \(elapsed)초 · 편집은 검사 후"
         case .done:
             var parts = ""
-            if !session.confusionMarks.isEmpty { parts += "확인 필요 \(session.confusionMarks.count)곳 · " }
-            if !session.revisionMarks.isEmpty { parts += "검사로 수정 \(session.revisionMarks.count)곳 · " }
+            if marks.confusion > 0 { parts += "확인 필요 \(marks.confusion)곳 · " }
+            if marks.revision > 0 { parts += "검사로 수정 \(marks.revision)곳 · " }
             return parts + "\(session.engineChoice.displayName) · \(elapsed)초"
         case .failed(let error):
             return "⚠︎ \(error.userMessage)"

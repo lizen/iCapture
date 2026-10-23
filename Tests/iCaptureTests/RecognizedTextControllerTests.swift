@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import XCTest
 
 @MainActor
@@ -46,6 +47,26 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(c.string, "WHERE u.Level = 1")
         XCTAssertEqual(c.confusionMarks, [])
         XCTAssertEqual(edits, ["WHERE u.Level = 1"])
+    }
+
+    /// 결과 창의 "확인 필요 N곳"이 사용자 편집을 따라가도록 표시가 바뀌면 알린다. 표시와 상관없는 타이핑은 알리지 않는다.
+    func testMarkChangesArePublished() {
+        let c = RecognizedTextController()
+        c.beginReplacement(); c.setStreamingText("WHERE u.level = 1"); c.endReplacement()
+        var notifications = 0
+        let subscription = c.objectWillChange.sink { notifications += 1 }
+        defer { subscription.cancel() }
+
+        c.setMarks(confusion: [NSRange(location: 8, length: 1)], revision: [])
+        XCTAssertGreaterThan(notifications, 0)
+
+        notifications = 0
+        userReplace(c, NSRange(location: 17, length: 0), with: "0")
+        XCTAssertEqual(notifications, 0)
+
+        userReplace(c, NSRange(location: 8, length: 1), with: "L")
+        XCTAssertEqual(c.confusionMarks.count, 0)
+        XCTAssertGreaterThan(notifications, 0)
     }
 
     func testUserEditShiftsLaterMarks() {

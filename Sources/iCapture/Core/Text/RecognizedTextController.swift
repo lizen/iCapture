@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 
 /// 서식 없는 일반 텍스트만 주고받는 텍스트 뷰. 창이 없어도(테스트) 쓸 수 있게 undo 관리자를 직접 가진다.
 final class PlainTextView: NSTextView {
@@ -39,12 +40,13 @@ final class PlainTextView: NSTextView {
 
 /// 인식 결과를 보여 주는 텍스트 영역. 스트리밍으로 텍스트를 받고, 재인식 한 번을 undo 한 단계로 묶고,
 /// 노랑(헷갈리는 글자)·초록(고친 곳) 표시를 화면 전용 임시 속성으로 칠한다.
-@MainActor final class RecognizedTextController: NSObject, @MainActor NSTextStorageDelegate {
+/// 표시가 바뀌면 알려서 결과 창의 "확인 필요 N곳"이 사용자 편집을 따라가게 한다.
+@MainActor final class RecognizedTextController: NSObject, ObservableObject, @MainActor NSTextStorageDelegate {
     let textView: PlainTextView
     /// 사용자가 직접 고쳤을 때, 그리고 재인식 undo/redo로 텍스트가 바뀌었을 때 불린다. 스트리밍 갱신에서는 불리지 않는다.
     var onUserEdit: ((String) -> Void)?
-    private(set) var confusionMarks: [NSRange] = []
-    private(set) var revisionMarks: [NSRange] = []
+    @Published private(set) var confusionMarks: [NSRange] = []
+    @Published private(set) var revisionMarks: [NSRange] = []
 
     /// 스트리밍 갱신이나 undo 재생 중이면 true. 이때의 텍스트 변경은 사용자 편집으로 보지 않는다.
     private var isReplacingProgrammatically = false
@@ -134,8 +136,11 @@ final class PlainTextView: NSTextView {
         range editedRange: NSRange, changeInLength delta: Int
     ) {
         guard editedMask.contains(.editedCharacters), !isReplacingProgrammatically else { return }
-        confusionMarks = MarkRanges.adjust(confusionMarks, editedRange: editedRange, changeInLength: delta)
-        revisionMarks = MarkRanges.adjust(revisionMarks, editedRange: editedRange, changeInLength: delta)
+        // 바뀔 때만 넣는다. 그대로 넣으면 표시와 상관없는 타이핑마다 결과 창이 다시 그려진다.
+        let confusion = MarkRanges.adjust(confusionMarks, editedRange: editedRange, changeInLength: delta)
+        if confusion != confusionMarks { confusionMarks = confusion }
+        let revision = MarkRanges.adjust(revisionMarks, editedRange: editedRange, changeInLength: delta)
+        if revision != revisionMarks { revisionMarks = revision }
         hasPendingUserEdit = true
     }
 

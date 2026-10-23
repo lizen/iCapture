@@ -112,7 +112,7 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
         window.collectionBehavior = [.moveToActiveSpace]
         window.delegate = self
 
-        let hosting = NSHostingView(rootView: ResultView(model: model, textView: textController.textView))
+        let hosting = NSHostingView(rootView: ResultView(model: model, text: textController))
         // SwiftUI의 이상적 크기로 창을 줄이거나 늘리지 않게 최소 크기만 따른다.
         hosting.sizingOptions = [.minSize]
         window.contentView = hosting
