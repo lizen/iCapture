@@ -55,7 +55,6 @@ final class AppCoordinator: NSObject {
 
     func captureRegion() {
         guard !isCapturing else { return }
-        finishCurrentSession()
         guard ScreenRecordingPermission.isGranted else {
             showPermissionAlert()
             return
@@ -64,13 +63,16 @@ final class AppCoordinator: NSObject {
         isCapturing = true
         Task {
             defer { isCapturing = false }
+            // esc로 선택을 접으면 돌고 있던 인식을 그대로 둔다. 영역을 고른 뒤에야 앞 세션을 끝낸다.
             guard let selection = await overlay.selectRegion() else { return }
+            finishCurrentSession()
             do {
                 let image = try await ScreenCapturer().capture(rect: selection.rect, on: selection.screen)
                 let png = try ImageEncoder.png(from: image)
                 beginCapture(png: png, image: NSImage(cgImage: image, size: selection.rect.size))
             } catch {
                 NSLog("iCapture 캡처 실패: %@", String(describing: error))
+                showCaptureFailedAlert(error)
             }
         }
     }
@@ -358,6 +360,14 @@ final class AppCoordinator: NSObject {
     private func showHotKeyConflictAlert(_ combo: HotKeyCombo) {
         let alert = NSAlert()
         alert.messageText = "\(combo.displayString) 단축키를 다른 앱이 쓰고 있어요. 설정에서 다른 조합을 골라 주세요."
+        alert.addButton(withTitle: "확인")
+        NSApp.activate()
+        alert.runModal()
+    }
+
+    private func showCaptureFailedAlert(_ error: Error) {
+        let alert = NSAlert()
+        alert.messageText = "캡처하지 못했어요: \(error.localizedDescription)"
         alert.addButton(withTitle: "확인")
         NSApp.activate()
         alert.runModal()
