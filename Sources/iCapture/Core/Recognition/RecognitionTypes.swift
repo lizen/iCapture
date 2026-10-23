@@ -78,3 +78,14 @@ enum RecognitionError: Error, Equatable, Sendable {
         }
     }
 }
+
+extension RecognitionError {
+    /// 200이 아닌 응답의 본문으로 에러를 만든다. 본문이 `{"error":{"message":…}}`면 그 메시지를, 아니면 본문 문자열을 쓴다.
+    static func httpFailure(status: Int, body: Data) -> RecognitionError {
+        if let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+           let message = (json["error"] as? [String: Any])?["message"] as? String {
+            return .http(status: status, message: message)
+        }
+        return .http(status: status, message: String(decoding: body, as: UTF8.self))
+    }
+}

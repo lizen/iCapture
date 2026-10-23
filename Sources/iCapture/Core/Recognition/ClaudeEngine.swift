@@ -95,28 +95,10 @@ struct ClaudeEngine: RecognitionEngine {
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
             var body = Data()
             for try await byte in bytes { body.append(byte) }
-            throw RecognitionError.http(status: http.statusCode, message: Self.errorMessage(in: body))
+            throw RecognitionError.httpFailure(status: http.statusCode, body: body)
         }
 
-        var parser = SSEParser()
-        var line = [UInt8]()
-        // `bytes.lines`는 빈 줄을 건너뛰어서 SSE의 이벤트 경계가 사라진다. 직접 줄을 나눈다.
-        for try await byte in bytes {
-            if byte == UInt8(ascii: "\n") {
-                if line.last == UInt8(ascii: "\r") { line.removeLast() }
-                let text = String(decoding: line, as: UTF8.self)
-                line.removeAll(keepingCapacity: true)
-                if let event = parser.feed(line: text) {
-                    try Self.handle(event, continuation)
-                }
-            } else {
-                line.append(byte)
-            }
-        }
-        if !line.isEmpty, let event = parser.feed(line: String(decoding: line, as: UTF8.self)) {
-            try Self.handle(event, continuation)
-        }
-        if let event = parser.feed(line: "") {
+        try await SSEParser.forEachEvent(in: bytes) { event in
             try Self.handle(event, continuation)
         }
     }
@@ -149,13 +131,5 @@ struct ClaudeEngine: RecognitionEngine {
         default:
             break
         }
-    }
-
-    private static func errorMessage(in body: Data) -> String {
-        if let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
-           let message = (json["error"] as? [String: Any])?["message"] as? String {
-            return message
-        }
-        return String(decoding: body, as: UTF8.self)
     }
 }

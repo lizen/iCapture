@@ -16,11 +16,13 @@
 		3EA785DD3BE271DFEDF6C4D7 /* KindTagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9696DE98D817600C258DA0D6 /* KindTagParser.swift */; };
 		473442931A0AA4CE915F3600 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB65EB84F2FED760E61E9EB /* StatusMenuController.swift */; };
 		4900487986DD6C62E2D4597A /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21E516BBC4BC9C219832F515 /* Security.framework */; };
+		4C99A21011F1C2335ABC27D0 /* NativEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E3C65DD896394A588B8D35 /* NativEngine.swift */; };
 		50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */; };
 		522DEE734A13E4237A96C975 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */; };
 		6099D1D2F5A96C6FCDD44D1C /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AEB834F646432428C05355 /* ImageEncoder.swift */; };
 		63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9696DE98D817600C258DA0D6 /* KindTagParser.swift */; };
 		64691EE8A0CDCCC562F1554A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */; };
+		656AE6306F446CE949FA61FA /* NativEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E3C65DD896394A588B8D35 /* NativEngine.swift */; };
 		6A32F1AE842DEBE15D3B11E7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97F6CD7D6B80DB5BC40BB697 /* Carbon.framework */; };
 		71B954A670F2446B227A2022 /* TestImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF010741F7548B3E7DD91900 /* TestImages.swift */; };
 		75C88222B2DEA807438B560C /* ClaudeFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */; };
@@ -30,6 +32,7 @@
 		9E417DEF6A02EA691D4C342D /* SSEParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */; };
 		A10C498C5ED9A4B9ACD40A4E /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6712FE5929E888401AEEFB9 /* Vision.framework */; };
 		A693FCB3A3215C60FBA61D31 /* ImageEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A348F5DCF69052EF49F7AE81 /* ImageEncoderTests.swift */; };
+		B7827D357C69B525A35C1C32 /* NativEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F604D53A1842D66641EB78 /* NativEngineTests.swift */; };
 		B899D34640290E2D50C3D7AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90ED2471E87E8A4548D6286 /* AppDelegate.swift */; };
 		C80513680C08BF47167182C1 /* SSEParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */; };
 		CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */; };
@@ -51,6 +54,7 @@
 		4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionPrompt.swift; sourceTree = "<group>"; };
 		51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeEngine.swift; sourceTree = "<group>"; };
 		696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
+		83E3C65DD896394A588B8D35 /* NativEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativEngine.swift; sourceTree = "<group>"; };
 		8921B823946A38773408DC92 /* ClaudeEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeEngineTests.swift; sourceTree = "<group>"; };
 		8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeFixtures.swift; sourceTree = "<group>"; };
 		8E506E58A1154879FBE07006 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Main.swift; sourceTree = "<group>"; };
@@ -61,6 +65,7 @@
 		A6712FE5929E888401AEEFB9 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
 		A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		A71FF4987837223AADC9F148 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
+		A8F604D53A1842D66641EB78 /* NativEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativEngineTests.swift; sourceTree = "<group>"; };
 		ADDB338ADBD07DE4A68B497B /* iCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2676197C89E216EF95B56C2 /* iCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionTypes.swift; sourceTree = "<group>"; };
@@ -102,6 +107,7 @@
 				51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */,
 				00AEB834F646432428C05355 /* ImageEncoder.swift */,
 				9696DE98D817600C258DA0D6 /* KindTagParser.swift */,
+				83E3C65DD896394A588B8D35 /* NativEngine.swift */,
 				4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */,
 				BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */,
 				CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */,
@@ -158,6 +164,7 @@
 				8921B823946A38773408DC92 /* ClaudeEngineTests.swift */,
 				A348F5DCF69052EF49F7AE81 /* ImageEncoderTests.swift */,
 				44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */,
+				A8F604D53A1842D66641EB78 /* NativEngineTests.swift */,
 				A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */,
 				2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */,
 				C81B95FEF049D14769562EEA /* Support */,
@@ -307,6 +314,8 @@
 				A693FCB3A3215C60FBA61D31 /* ImageEncoderTests.swift in Sources */,
 				63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */,
 				2E3921EDAB7AC9442E6EA640 /* KindTagParserTests.swift in Sources */,
+				656AE6306F446CE949FA61FA /* NativEngine.swift in Sources */,
+				B7827D357C69B525A35C1C32 /* NativEngineTests.swift in Sources */,
 				50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */,
 				CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */,
 				934A9BA2CF2C48E55799D98E /* SSEParser.swift in Sources */,
@@ -326,6 +335,7 @@
 				F2D4E2A97AAE29B9196C3077 /* ImageEncoder.swift in Sources */,
 				3EA785DD3BE271DFEDF6C4D7 /* KindTagParser.swift in Sources */,
 				ED7B9EB17AFAF16CF713FD4E /* Main.swift in Sources */,
+				4C99A21011F1C2335ABC27D0 /* NativEngine.swift in Sources */,
 				7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */,
 				096E1EF30DB3CAC1F9EC15C6 /* RecognitionTypes.swift in Sources */,
 				C80513680C08BF47167182C1 /* SSEParser.swift in Sources */,
