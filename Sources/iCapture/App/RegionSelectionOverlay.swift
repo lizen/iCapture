@@ -14,15 +14,23 @@ final class RegionSelectionOverlay {
             ?? NSScreen.main
         else { return nil }
 
+        // 선택 없이 끝나면 포커스를 돌려줄 앱. 영역을 고르면 결과 창이 iCapture를 활성화하므로 쓰지 않는다.
+        let current = NSRunningApplication.current
+        let previousApp = NSWorkspace.shared.frontmostApplication.flatMap { $0 == current ? nil : $0 }
+
         let localRect = await withCheckedContinuation { (continuation: CheckedContinuation<CGRect?, Never>) in
             self.continuation = continuation
             present(on: screen)
         }
         dismiss()
+
+        guard let localRect, !CaptureGeometry.isTooSmall(localRect) else {
+            // 다른 앱으로 옮겨 가서 취소됐으면(이미 iCapture가 비활성) 사용자가 고른 앱을 그대로 둔다.
+            if NSApp.isActive { previousApp?.activate() }
+            return nil
+        }
         // 오버레이가 캡처 이미지에 찍히지 않도록 윈도우 서버가 화면을 갱신할 시간을 준다.
         try? await Task.sleep(for: .milliseconds(50))
-
-        guard let localRect, !CaptureGeometry.isTooSmall(localRect) else { return nil }
         return (localRect.offsetBy(dx: screen.frame.minX, dy: screen.frame.minY), screen)
     }
 

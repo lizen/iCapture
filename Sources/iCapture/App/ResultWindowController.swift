@@ -69,7 +69,7 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         // 다른 앱이 앞에 있어 활성화가 늦어져도 창은 앞에 보이게 한다.
         window.orderFrontRegardless()
-        window.makeFirstResponder(textController.textView)
+        focusTextView(in: window)
     }
 
     // MARK: - NSWindowDelegate
@@ -83,6 +83,21 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
     }
 
     // MARK: - Private
+
+    /// 처음 만든 창은 호스팅 뷰가 아직 배치되지 않아 텍스트 뷰가 창에 붙어 있지 않을 수 있다.
+    /// 그러면 first responder가 되지 못해 클릭 전까지 ⌘A·⌘C가 듣지 않으므로, 배치를 끝내고 그래도 안 붙었으면 다음 차례에 다시 한다.
+    private func focusTextView(in window: NSWindow) {
+        window.layoutIfNeeded()
+        let textView = textController.textView
+        if textView.window === window {
+            window.makeFirstResponder(textView)
+            return
+        }
+        DispatchQueue.main.async { [weak window, weak textView] in
+            guard let window, let textView, textView.window === window else { return }
+            window.makeFirstResponder(textView)
+        }
+    }
 
     private func makeWindow() -> NSWindow {
         let window = NSWindow(
