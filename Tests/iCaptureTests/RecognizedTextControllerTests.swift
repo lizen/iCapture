@@ -95,6 +95,118 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(c.confusionMarks, []); XCTAssertEqual(c.revisionMarks, [])
     }
 
+    // MARK: - 실제 입력 경로(타이핑·IME)
+
+    private let paragraphText = "ab cdefgh ijk\nline2 x"
+    private let paragraphMarks = [NSRange(location: 5, length: 1), NSRange(location: 11, length: 1), NSRange(location: 20, length: 1)]
+    private let shiftedMarks = [NSRange(location: 6, length: 1), NSRange(location: 12, length: 1), NSRange(location: 21, length: 1)]
+    private let noReplacement = NSRange(location: NSNotFound, length: 0)
+
+    func testTypingKeepsMarksLaterInSameParagraph() {
+        let c = recognized(paragraphText)
+        c.setMarks(confusion: paragraphMarks, revision: [])
+        var edits: [String] = []
+        c.onUserEdit = { edits.append($0) }
+        c.textView.setSelectedRange(NSRange(location: 3, length: 0))
+        c.textView.insertText("k", replacementRange: noReplacement)
+        XCTAssertEqual(c.string, "ab kcdefgh ijk\nline2 x")
+        XCTAssertEqual(c.confusionMarks, shiftedMarks)
+        XCTAssertEqual(edits, ["ab kcdefgh ijk\nline2 x"])
+        XCTAssertNotNil(c.textView.layoutManager!.temporaryAttributes(atCharacterIndex: 6, effectiveRange: nil)[.backgroundColor])
+    }
+
+    func testIMECommitKeepsMarksLaterInSameParagraph() {
+        let c = recognized(paragraphText)
+        c.setMarks(confusion: paragraphMarks, revision: [])
+        let tv = c.textView
+        tv.setSelectedRange(NSRange(location: 3, length: 0))
+        tv.setMarkedText("ㄱ", selectedRange: NSRange(location: 1, length: 0), replacementRange: noReplacement)
+        tv.setMarkedText("가", selectedRange: NSRange(location: 1, length: 0), replacementRange: noReplacement)
+        tv.insertText("각", replacementRange: noReplacement)
+        XCTAssertEqual(c.string, "ab 각cdefgh ijk\nline2 x")
+        XCTAssertEqual(c.confusionMarks, shiftedMarks)
+    }
+
+    // MARK: - 창 안의 undo:/redo:
+
+    func testWindowUndoRedoActionsReachTextViewUndoManager() {
+        let c = RecognizedTextController()
+        c.beginReplacement(); c.setStreamingText("u.1evel"); c.endReplacement()
+        c.beginReplacement(); c.setStreamingText("u.level"); c.endReplacement()
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 300, height: 200), styleMask: [.titled], backing: .buffered, defer: true)
+        window.isReleasedWhenClosed = false
+        c.textView.frame = window.contentView!.bounds
+        window.contentView!.addSubview(c.textView)
+        XCTAssertTrue(window.makeFirstResponder(c.textView))
+        let responder = window.firstResponder!
+
+        XCTAssertTrue(c.textView.validateMenuItem(NSMenuItem(title: "", action: Selector(("undo:")), keyEquivalent: "")))
+        XCTAssertTrue(responder.tryToPerform(Selector(("undo:")), with: nil))
+        XCTAssertEqual(c.string, "u.1evel")
+        XCTAssertTrue(c.textView.validateMenuItem(NSMenuItem(title: "", action: Selector(("redo:")), keyEquivalent: "")))
+        XCTAssertTrue(responder.tryToPerform(Selector(("redo:")), with: nil))
+        XCTAssertEqual(c.string, "u.level")
+    }
+
+    // MARK: - 남은 타이핑 undo
+
+    func testRerecognitionAfterDeletingEverythingClearsHistory() {
+        let c = recognized("hello")
+        c.textView.setSelectedRange(NSRange(location: 0, length: 5))
+        c.textView.insertText("", replacementRange: noReplacement)
+        XCTAssertEqual(c.string, "")
+        c.beginReplacement(); c.setStreamingText("world wide"); c.endReplacement()
+        XCTAssertFalse(c.textView.undoManager!.canUndo)
+        XCTAssertEqual(c.string, "world wide")
+    }
+
+    func testStreamingOutsideReplacementClearsHistory() {
+        let c = recognized("hello")
+        c.textView.setSelectedRange(NSRange(location: 5, length: 0))
+        c.textView.insertText("!!", replacementRange: noReplacement)
+        XCTAssertTrue(c.textView.undoManager!.canUndo)
+        c.setStreamingText("hi")
+        XCTAssertFalse(c.textView.undoManager!.canUndo)
+    }
+
+    func testUndoIsBlockedWhileStreaming() {
+        let c = recognized("hello world")
+        c.textView.setSelectedRange(NSRange(location: 11, length: 0))
+        c.textView.insertText("!!", replacementRange: noReplacement)
+        c.beginReplacement(); c.setStreamingText("hi")
+        XCTAssertFalse(c.textView.validateMenuItem(NSMenuItem(title: "", action: Selector(("undo:")), keyEquivalent: "")))
+        c.textView.undo(nil)
+        XCTAssertEqual(c.string, "hi")
+        c.endReplacement()
+        XCTAssertTrue(c.textView.validateMenuItem(NSMenuItem(title: "", action: Selector(("undo:")), keyEquivalent: "")))
+    }
+
+    // MARK: - 재인식 undo/redo 알림, 연속 begin
+
+    func testRecognitionUndoRedoCallsOnUserEdit() {
+        let c = recognized("u.1evel")
+        c.beginReplacement(); c.setStreamingText("u.level"); c.endReplacement()
+        var edits: [String] = []
+        c.onUserEdit = { edits.append($0) }
+        c.textView.undoManager!.undo()
+        c.textView.undoManager!.redo()
+        XCTAssertEqual(edits, ["u.1evel", "u.level"])
+    }
+
+    func testSecondBeginKeepsSavedText() {
+        let c = recognized("first")
+        c.beginReplacement(); c.setStreamingText("se")
+        c.beginReplacement(); c.setStreamingText("second"); c.endReplacement()
+        c.textView.undoManager!.undo()
+        XCTAssertEqual(c.string, "first")
+    }
+
+    private func recognized(_ text: String) -> RecognizedTextController {
+        let c = RecognizedTextController()
+        c.beginReplacement(); c.setStreamingText(text); c.endReplacement()
+        return c
+    }
+
     /// 실제 타이핑과 같은 경로로 사용자 편집을 흉내 낸다.
     private func userReplace(_ c: RecognizedTextController, _ range: NSRange, with text: String) {
         let tv = c.textView
