@@ -1,0 +1,12 @@
+# 캡처 이력 (이미지 포함) — git에 올리지 않음
+hist/
+
+# 빌드 산출물
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# 기타
+.DS_Store
+.superpowers/
