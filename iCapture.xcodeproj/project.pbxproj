@@ -14,11 +14,13 @@
 		12287111830F7969D476C6B7 /* ClaudeEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8921B823946A38773408DC92 /* ClaudeEngineTests.swift */; };
 		1429B83999A71A8D2015F988 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 93BD8DA0AB93F474D731D68B /* ServiceManagement.framework */; };
 		1B55D37D8F066F5D4FE61BF8 /* TextDiffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17A1D0591C0FA23AD9647F6 /* TextDiffTests.swift */; };
+		1F34097EC63B006D375E0BDB /* RecognitionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE23BB4234FB277D0ECBE19B /* RecognitionSession.swift */; };
 		24CFCF5410C18D4EFDBF6C45 /* VisionOCRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289372037459A31807E1269E /* VisionOCRTests.swift */; };
 		2E3921EDAB7AC9442E6EA640 /* KindTagParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */; };
 		3033C7A62653B4DA58F35436 /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A6712FE5929E888401AEEFB9 /* Vision.framework */; };
 		329A42144C672A128468AC56 /* ConfusionMarker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DDB273C72FD75F72200F06E /* ConfusionMarker.swift */; };
 		3EA785DD3BE271DFEDF6C4D7 /* KindTagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9696DE98D817600C258DA0D6 /* KindTagParser.swift */; };
+		44F2070EEFC0B49FAC58EE21 /* FakeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B7B9369872D1876CADC894 /* FakeEngine.swift */; };
 		473442931A0AA4CE915F3600 /* StatusMenuController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB65EB84F2FED760E61E9EB /* StatusMenuController.swift */; };
 		4900487986DD6C62E2D4597A /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21E516BBC4BC9C219832F515 /* Security.framework */; };
 		4C99A21011F1C2335ABC27D0 /* NativEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E3C65DD896394A588B8D35 /* NativEngine.swift */; };
@@ -35,6 +37,7 @@
 		71B954A670F2446B227A2022 /* TestImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF010741F7548B3E7DD91900 /* TestImages.swift */; };
 		75C88222B2DEA807438B560C /* ClaudeFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */; };
 		7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */; };
+		82CAD2AEC392FC0158578EAC /* RecognitionSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290E19B857752A8B1BCE0CDD /* RecognitionSessionTests.swift */; };
 		856F2F52C55C802E693C2AE1 /* VisionOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204AB0A24745090E32863817 /* VisionOCR.swift */; };
 		92FEF75B415375134832CD26 /* Collect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005E32E1F6EAE1D1C43DF18A /* Collect.swift */; };
 		934A9BA2CF2C48E55799D98E /* SSEParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */; };
@@ -49,6 +52,7 @@
 		CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9E39D243E7877BFB8D2E24 /* RecognitionTypes.swift */; };
 		D3A8B73FF3143E04406DC52C /* ScreenCaptureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A71FF4987837223AADC9F148 /* ScreenCaptureKit.framework */; };
 		E3346EFFC1E0A5FF58860347 /* StubURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */; };
+		E7A73B138C4374995CE80E75 /* RecognitionSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE23BB4234FB277D0ECBE19B /* RecognitionSession.swift */; };
 		E80A5743714AA1865239C429 /* MarkRanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCBDE69CE725E4ED073267F /* MarkRanges.swift */; };
 		ED7B9EB17AFAF16CF713FD4E /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E506E58A1154879FBE07006 /* Main.swift */; };
 		F2D4E2A97AAE29B9196C3077 /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AEB834F646432428C05355 /* ImageEncoder.swift */; };
@@ -62,6 +66,7 @@
 		204AB0A24745090E32863817 /* VisionOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOCR.swift; sourceTree = "<group>"; };
 		21E516BBC4BC9C219832F515 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		289372037459A31807E1269E /* VisionOCRTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOCRTests.swift; sourceTree = "<group>"; };
+		290E19B857752A8B1BCE0CDD /* RecognitionSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionSessionTests.swift; sourceTree = "<group>"; };
 		2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEParserTests.swift; sourceTree = "<group>"; };
 		37DD0238EF625E290E5E9CD7 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		3A5FD3F6062BB2C0B521F536 /* MarkRangesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkRangesTests.swift; sourceTree = "<group>"; };
@@ -69,6 +74,7 @@
 		44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KindTagParserTests.swift; sourceTree = "<group>"; };
 		4B9EAE280E9BA46407E1286C /* RecognitionPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionPrompt.swift; sourceTree = "<group>"; };
 		51CA61D1B1EE16C7E9F25B1B /* ClaudeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeEngine.swift; sourceTree = "<group>"; };
+		63B7B9369872D1876CADC894 /* FakeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeEngine.swift; sourceTree = "<group>"; };
 		696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
 		7DDB273C72FD75F72200F06E /* ConfusionMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfusionMarker.swift; sourceTree = "<group>"; };
 		83E3C65DD896394A588B8D35 /* NativEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativEngine.swift; sourceTree = "<group>"; };
@@ -92,6 +98,7 @@
 		C90ED2471E87E8A4548D6286 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CAB65EB84F2FED760E61E9EB /* StatusMenuController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuController.swift; sourceTree = "<group>"; };
 		CC2EA80AF2D2DCFC6ADA4E82 /* SSEParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEParser.swift; sourceTree = "<group>"; };
+		CE23BB4234FB277D0ECBE19B /* RecognitionSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognitionSession.swift; sourceTree = "<group>"; };
 		CF010741F7548B3E7DD91900 /* TestImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestImages.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -121,6 +128,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0298EB23BC492CF763D54148 /* Session */ = {
+			isa = PBXGroup;
+			children = (
+				CE23BB4234FB277D0ECBE19B /* RecognitionSession.swift */,
+			);
+			path = Session;
+			sourceTree = "<group>";
+		};
 		31D0D66905CFD6A0EFF5A1B5 /* Recognition */ = {
 			isa = PBXGroup;
 			children = (
@@ -141,6 +156,7 @@
 			children = (
 				94AADFB06FF01AFA66D57B50 /* Marks */,
 				31D0D66905CFD6A0EFF5A1B5 /* Recognition */,
+				0298EB23BC492CF763D54148 /* Session */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -189,6 +205,7 @@
 				44836682B7FCE276BFA73FD8 /* KindTagParserTests.swift */,
 				3A5FD3F6062BB2C0B521F536 /* MarkRangesTests.swift */,
 				A8F604D53A1842D66641EB78 /* NativEngineTests.swift */,
+				290E19B857752A8B1BCE0CDD /* RecognitionSessionTests.swift */,
 				A6C8EC7051B3A944DFFB0CFE /* SmokeTests.swift */,
 				2EE7B82D67ADF03C8F8AB8AC /* SSEParserTests.swift */,
 				C17A1D0591C0FA23AD9647F6 /* TextDiffTests.swift */,
@@ -236,6 +253,7 @@
 			children = (
 				8DE9DD0AFFCDBDA5CBA67523 /* ClaudeFixtures.swift */,
 				005E32E1F6EAE1D1C43DF18A /* Collect.swift */,
+				63B7B9369872D1876CADC894 /* FakeEngine.swift */,
 				696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */,
 				CF010741F7548B3E7DD91900 /* TestImages.swift */,
 			);
@@ -348,6 +366,7 @@
 				92FEF75B415375134832CD26 /* Collect.swift in Sources */,
 				329A42144C672A128468AC56 /* ConfusionMarker.swift in Sources */,
 				5BC0D95C78CD7E153EE882AE /* ConfusionMarkerTests.swift in Sources */,
+				44F2070EEFC0B49FAC58EE21 /* FakeEngine.swift in Sources */,
 				6099D1D2F5A96C6FCDD44D1C /* ImageEncoder.swift in Sources */,
 				A693FCB3A3215C60FBA61D31 /* ImageEncoderTests.swift in Sources */,
 				63F5C5CF37658EC5197D56A9 /* KindTagParser.swift in Sources */,
@@ -357,6 +376,8 @@
 				656AE6306F446CE949FA61FA /* NativEngine.swift in Sources */,
 				B7827D357C69B525A35C1C32 /* NativEngineTests.swift in Sources */,
 				50316D43BE8C6AC445BF6B2D /* RecognitionPrompt.swift in Sources */,
+				E7A73B138C4374995CE80E75 /* RecognitionSession.swift in Sources */,
+				82CAD2AEC392FC0158578EAC /* RecognitionSessionTests.swift in Sources */,
 				CFD5FE96BBF8D3F9BA5E9BDD /* RecognitionTypes.swift in Sources */,
 				934A9BA2CF2C48E55799D98E /* SSEParser.swift in Sources */,
 				9E417DEF6A02EA691D4C342D /* SSEParserTests.swift in Sources */,
@@ -383,6 +404,7 @@
 				E80A5743714AA1865239C429 /* MarkRanges.swift in Sources */,
 				4C99A21011F1C2335ABC27D0 /* NativEngine.swift in Sources */,
 				7BCABC25D5CA56BC079B361A /* RecognitionPrompt.swift in Sources */,
+				1F34097EC63B006D375E0BDB /* RecognitionSession.swift in Sources */,
 				096E1EF30DB3CAC1F9EC15C6 /* RecognitionTypes.swift in Sources */,
 				C80513680C08BF47167182C1 /* SSEParser.swift in Sources */,
 				473442931A0AA4CE915F3600 /* StatusMenuController.swift in Sources */,
