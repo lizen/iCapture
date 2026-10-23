@@ -3,6 +3,8 @@ import AppKit
 @MainActor
 final class StatusMenuController {
     private let statusItem: NSStatusItem
+    // TEMP(Task 11): Task 11에서 AppCoordinator 연결로 대체한다.
+    var onCaptureRequested: (@MainActor () -> Void)?
 
     init(statusItem: NSStatusItem) {
         self.statusItem = statusItem
@@ -19,7 +21,8 @@ final class StatusMenuController {
     private func makeMenu() -> NSMenu {
         let menu = NSMenu()
 
-        let capture = NSMenuItem(title: "영역 캡처", action: nil, keyEquivalent: "2")
+        let capture = NSMenuItem(title: "영역 캡처", action: #selector(captureRequested), keyEquivalent: "2")
+        capture.target = self  // TEMP(Task 11)
         capture.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(capture)
 
@@ -37,5 +40,10 @@ final class StatusMenuController {
         menu.addItem(quit)
 
         return menu
+    }
+
+    // TEMP(Task 11)
+    @objc private func captureRequested() {
+        onCaptureRequested?()
     }
 }
