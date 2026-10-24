@@ -25,7 +25,7 @@ final class NativEngineTests: XCTestCase {
         XCTAssertEqual(body["model"] as? String, "qwen-vl")
         XCTAssertEqual(body["stream"] as? Bool, true)
         XCTAssertEqual(body["max_tokens"] as? Int, 4096)
-        XCTAssertNil(body["temperature"])
+        XCTAssertEqual(body["temperature"] as? Int, 0)
         let messages = try XCTUnwrap(body["messages"] as? [[String: Any]])
         XCTAssertEqual(messages[0]["role"] as? String, "system")
         XCTAssertEqual(messages[0]["content"] as? String, RecognitionPrompt.system)

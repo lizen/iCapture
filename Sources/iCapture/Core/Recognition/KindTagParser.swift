@@ -29,6 +29,7 @@ struct KindTagParser {
         } else if body.hasSuffix("\n" + fence) {
             body.removeLast(fence.count + 1)
         }
+        if result.kind == .table { body = SpreadsheetHeaderCleanup.clean(body) }
         return (result.kind, body)
     }
 

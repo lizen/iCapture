@@ -30,6 +30,8 @@ struct NativEngine: RecognitionEngine {
             "model": model,
             "stream": true,
             "max_tokens": Self.maxTokens,
+            // 받아쓰기는 가장 그럴듯한 글자 하나만 필요하다. 샘플링을 끄면 없는 글자를 지어내는 일이 준다.
+            "temperature": 0,
             "messages": [
                 ["role": "system", "content": RecognitionPrompt.system],
                 ["role": "user", "content": [
