@@ -63,6 +63,16 @@ final class SpreadsheetHeaderCleanupTests: XCTestCase {
         XCTAssertEqual(SpreadsheetHeaderCleanup.clean(plain), plain)
     }
 
+    func testHugeNumbersDoNotCrash() {
+        let table = """
+        |  | 이름 |
+        |---|---|
+        | \(Int.max) | 가 |
+        | 1 | 나 |
+        """
+        XCTAssertEqual(SpreadsheetHeaderCleanup.clean(table), table)
+    }
+
     func testLeavesNonTableTextAlone() {
         XCTAssertEqual(SpreadsheetHeaderCleanup.clean("SELECT 1\nFROM dual"), "SELECT 1\nFROM dual")
         XCTAssertEqual(SpreadsheetHeaderCleanup.clean(""), "")

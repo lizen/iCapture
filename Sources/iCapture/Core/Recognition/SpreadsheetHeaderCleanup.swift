@@ -63,6 +63,10 @@ enum SpreadsheetHeaderCleanup {
     private static func isConsecutiveNumbers(_ cells: [String]) -> Bool {
         let numbers = cells.map { Int($0) }
         guard !numbers.isEmpty, let first = numbers.first ?? nil else { return false }
-        return numbers.enumerated().allSatisfy { $0.element == first + $0.offset }
+        // 모델 출력은 아무 숫자나 될 수 있다. 아주 큰 값에서 `+`가 넘쳐 앱이 죽지 않게 넘침을 확인한다.
+        return numbers.enumerated().allSatisfy { index, number in
+            let (expected, overflow) = first.addingReportingOverflow(index)
+            return !overflow && number == expected
+        }
     }
 }
