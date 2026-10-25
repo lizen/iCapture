@@ -2,7 +2,7 @@ import XCTest
 
 /// 정답이 있는 검증 세트에 진짜 엔진을 돌려 정확도와 시간을 재는 측정 도구.
 /// 시간이 오래 걸려서 `ICAPTURE_ACCURACY=1`일 때만 돈다(`make accuracy`).
-/// 기본은 로컬 서버(Nativ·vLLM)만 재서 비용이 들지 않는다. `ANTHROPIC_API_KEY`를 주면 Claude도 잰다(API 비용 발생).
+/// 기본은 로컬 서버(Nativ·Ollama·vLLM)만 재서 비용이 들지 않는다. `ANTHROPIC_API_KEY`를 주면 Claude도 잰다(API 비용 발생).
 /// 테스트는 실패로 끝나지 않고 `build/accuracy-report.md`에 엔진별 판정을 적는다. 기준을 판단하는 건 사람이다.
 @MainActor
 final class AccuracyTests: XCTestCase {
@@ -202,13 +202,13 @@ final class AccuracyTests: XCTestCase {
     /// 로컬 서버는 늘 잰다. 모델을 정하지 않으면 앱과 같은 방식으로 서버 목록에서 고른다.
     /// `ANTHROPIC_API_KEY`가 있으면 Claude 두 모델도 함께 잰다.
     private static func engines(_ environment: [String: String]) async throws -> [any RecognitionEngine] {
-        let baseURL = environment["LOCAL_BASE_URL"].flatMap(AppSettings.validatedNativBaseURL) ?? AppSettings.defaultNativBaseURL
+        let baseURL = environment["LOCAL_BASE_URL"].flatMap(AppSettings.validatedBaseLLMURL) ?? AppSettings.defaultBaseLLMURL
         let localKey = environment["LOCAL_API_KEY"]
         var model = environment["LOCAL_MODEL"] ?? environment["NATIV_MODEL"] ?? ""
         if model.isEmpty {
-            model = NativModels.preferredVisionModel(try await NativModels.list(baseURL: baseURL, apiKey: localKey))
+            model = LocalLLMModels.preferredVisionModel(try await LocalLLMModels.list(baseURL: baseURL, apiKey: localKey))
         }
-        var engines: [any RecognitionEngine] = [NativEngine(baseURL: baseURL, modelID: model, apiKey: localKey)]
+        var engines: [any RecognitionEngine] = [LocalLLMEngine(baseURL: baseURL, modelID: model, apiKey: localKey)]
         if let apiKey = environment["ANTHROPIC_API_KEY"], !apiKey.isEmpty {
             engines += [ClaudeEngine(model: .sonnet, apiKey: apiKey), ClaudeEngine(model: .haiku, apiKey: apiKey)]
         }

@@ -8,7 +8,7 @@ enum KeychainError: Error, Equatable {
 /// 일반 암호 항목(`kSecClassGenericPassword`)을 서비스 + 계정으로 읽고 쓴다.
 struct KeychainStore: Sendable {
     static let claudeAccount = "claude-api-key"
-    static let nativAccount = "nativ-api-key"
+    static let llmAccount = "nativ-api-key"
 
     let service: String
 

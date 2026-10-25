@@ -1,7 +1,7 @@
 import Foundation
 
-/// Nativ·vLLM 같은 OpenAI 호환 로컬 서버. `modelID`가 비어 있으면 인식할 때 `NativModels.preferredVisionModel`로 고른다.
-struct NativEngine: RecognitionEngine {
+/// Nativ·Ollama·vLLM 같은 OpenAI 호환 로컬 서버. `modelID`가 비어 있으면 인식할 때 `LocalLLMModels.preferredVisionModel`로 고른다.
+struct LocalLLMEngine: RecognitionEngine {
     /// vLLM은 프롬프트 + `max_tokens`가 모델 문맥 길이를 넘으면 400을 돌려준다. 화면 캡처 한 장의 텍스트는 이 안에 들어간다.
     static let maxTokens = 4096
     /// 로컬 모델은 큰 이미지에서 첫 토큰까지 1분을 넘기기도 해서 기본값(60초)보다 길게 기다린다.
@@ -19,7 +19,7 @@ struct NativEngine: RecognitionEngine {
         self.session = session
     }
 
-    var choice: EngineChoice { .nativ(modelID: modelID) }
+    var choice: EngineChoice { .localLLM(modelID: modelID) }
 
     func makeRequest(png: Data) throws -> URLRequest {
         try makeRequest(png: png, model: modelID)
@@ -55,8 +55,8 @@ struct NativEngine: RecognitionEngine {
             let task = Task {
                 do {
                     let model = modelID.isEmpty
-                        ? NativModels.preferredVisionModel(
-                            try await NativModels.list(baseURL: baseURL, apiKey: apiKey, session: session))
+                        ? LocalLLMModels.preferredVisionModel(
+                            try await LocalLLMModels.list(baseURL: baseURL, apiKey: apiKey, session: session))
                         : modelID
                     let request = try makeRequest(png: png, model: model)
                     try await stream(request, into: continuation)
@@ -87,7 +87,7 @@ struct NativEngine: RecognitionEngine {
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
             var body = Data()
             for try await byte in bytes { body.append(byte) }
-            throw RecognitionError.nativHTTPFailure(status: http.statusCode, body: body)
+            throw RecognitionError.localLLMHTTPFailure(status: http.statusCode, body: body)
         }
 
         var finished = false
@@ -116,11 +116,11 @@ struct NativEngine: RecognitionEngine {
         }
     }
 
-    /// 서버에 닿지 못한 오류는 `.nativUnreachable`로, 시간 초과는 `.timedOut`으로, 나머지는 `.network`로 바꾼다.
+    /// 서버에 닿지 못한 오류는 `.localLLMUnreachable`로, 시간 초과는 `.timedOut`으로, 나머지는 `.network`로 바꾼다.
     static func recognitionError(for error: URLError, baseURL: URL) -> RecognitionError {
         switch error.code {
         case .cannotConnectToHost, .networkConnectionLost, .cannotFindHost:
-            .nativUnreachable(url: baseURL.absoluteString)
+            .localLLMUnreachable(url: baseURL.absoluteString)
         case .timedOut:
             .timedOut
         default:
@@ -129,11 +129,11 @@ struct NativEngine: RecognitionEngine {
     }
 }
 
-enum NativModels {
+enum LocalLLMModels {
     /// 모델 목록은 창을 열 때마다 받으므로, 서버가 멈춰 있으면 오래 붙잡지 않는다.
     static let requestTimeout: TimeInterval = 10
 
-    /// `GET /v1/models`의 `data[].id`. 모델이 하나도 없으면 `.noNativModel`을 던진다.
+    /// `GET /v1/models`의 `data[].id`. 모델이 하나도 없으면 `.noLocalLLMModel`을 던진다.
     static func list(baseURL: URL, apiKey: String?, session: URLSession = .shared) async throws -> [String] {
         let request = makeRequest(baseURL: baseURL, apiKey: apiKey)
         let data: Data, response: URLResponse
@@ -142,10 +142,10 @@ enum NativModels {
         } catch let error as URLError where error.code == .cancelled {
             throw CancellationError()
         } catch let error as URLError {
-            throw NativEngine.recognitionError(for: error, baseURL: baseURL)
+            throw LocalLLMEngine.recognitionError(for: error, baseURL: baseURL)
         }
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-            throw RecognitionError.nativHTTPFailure(status: http.statusCode, body: data)
+            throw RecognitionError.localLLMHTTPFailure(status: http.statusCode, body: data)
         }
 
         let entries = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["data"] as? [[String: Any]] ?? []
@@ -153,7 +153,7 @@ enum NativModels {
         let loaded = entries.filter { $0["loaded"] as? Bool == true }
         let others = entries.filter { $0["loaded"] as? Bool != true }
         let ids = (loaded + others).compactMap { $0["id"] as? String }
-        if ids.isEmpty { throw RecognitionError.noNativModel }
+        if ids.isEmpty { throw RecognitionError.noLocalLLMModel }
         return ids
     }
 
@@ -173,7 +173,7 @@ enum NativModels {
         var request = URLRequest(url: baseURL.appending(path: "v1/models"))
         request.httpMethod = "GET"
         request.timeoutInterval = requestTimeout
-        NativEngine.authorize(&request, apiKey: apiKey)
+        LocalLLMEngine.authorize(&request, apiKey: apiKey)
         return request
     }
 }

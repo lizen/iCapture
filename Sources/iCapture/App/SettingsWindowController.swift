@@ -7,9 +7,9 @@ import SwiftUI
 @MainActor
 final class SettingsModel: ObservableObject {
     @Published var claudeKey = ""
-    @Published var nativKey = ""
-    @Published var nativURLText = ""
-    @Published var nativModelIDs: [String] = []
+    @Published var llmKey = ""
+    @Published var baseLLMURLText = ""
+    @Published var llmModelIDs: [String] = []
     @Published var isRecordingHotKey = false
     @Published var launchAtLogin = false
 
@@ -19,7 +19,7 @@ final class SettingsModel: ObservableObject {
 
     /// 로컬(자동) + Claude 두 개 + 로컬 서버의 모델들. 지금 고른 엔진이 목록에 없으면(예: 로컬 서버가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
     func engineOptions(selected: EngineChoice) -> [EngineChoice] {
-        var options = ResultModel.baseChoices + nativModelIDs.map { EngineChoice.nativ(modelID: $0) }
+        var options = ResultModel.baseChoices + llmModelIDs.map { EngineChoice.localLLM(modelID: $0) }
         if !options.contains(selected) { options.append(selected) }
         return options
     }
@@ -39,10 +39,10 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private let keychain: KeychainStore
     private var window: NSWindow?
     private var recordingMonitor: Any?
-    private var nativModelsTask: Task<Void, Never>?
+    private var llmModelsTask: Task<Void, Never>?
     /// 마지막으로 키체인에서 읽거나 쓴 값. 바뀌지 않았으면 다시 쓰지 않는다.
     private var savedClaudeKey = ""
-    private var savedNativKey = ""
+    private var savedLLMKey = ""
 
     init(settings: AppSettings, keychain: KeychainStore) {
         self.settings = settings
@@ -81,48 +81,48 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         commit()
         // 창이 닫혀 있는 동안 키를 메모리에 두지 않는다. 다시 열면 키체인에서 읽는다.
         model.claudeKey = ""
-        model.nativKey = ""
+        model.llmKey = ""
         savedClaudeKey = ""
-        savedNativKey = ""
+        savedLLMKey = ""
     }
 
     // MARK: - 값 읽기·확정
 
     private func load() {
         savedClaudeKey = keychain.read(account: KeychainStore.claudeAccount) ?? ""
-        savedNativKey = keychain.read(account: KeychainStore.nativAccount) ?? ""
+        savedLLMKey = keychain.read(account: KeychainStore.llmAccount) ?? ""
         model.claudeKey = savedClaudeKey
-        model.nativKey = savedNativKey
-        model.nativURLText = settings.nativBaseURL.absoluteString
+        model.llmKey = savedLLMKey
+        model.baseLLMURLText = settings.baseLLMURL.absoluteString
         model.launchAtLogin = SMAppService.mainApp.status == .enabled
-        refreshNativModels()
+        refreshLocalLLMModels()
     }
 
     private func commit() {
-        var nativChanged = false
+        var llmChanged = false
         // 붙여 넣을 때 딸려 온 공백·줄바꿈은 키가 아니다.
         let claudeKey = model.claudeKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        let nativKey = model.nativKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        let llmKey = model.llmKey.trimmingCharacters(in: .whitespacesAndNewlines)
         if model.claudeKey != claudeKey { model.claudeKey = claudeKey }
-        if model.nativKey != nativKey { model.nativKey = nativKey }
+        if model.llmKey != llmKey { model.llmKey = llmKey }
         if claudeKey != savedClaudeKey {
             writeKey(claudeKey, account: KeychainStore.claudeAccount)
             savedClaudeKey = claudeKey
         }
-        if nativKey != savedNativKey {
-            writeKey(nativKey, account: KeychainStore.nativAccount)
-            savedNativKey = nativKey
-            nativChanged = true
+        if llmKey != savedLLMKey {
+            writeKey(llmKey, account: KeychainStore.llmAccount)
+            savedLLMKey = llmKey
+            llmChanged = true
         }
         // 잘못된 주소는 무시하고 이전 값으로 되돌려 보여 준다.
-        if let url = AppSettings.validatedNativBaseURL(model.nativURLText) {
-            if url != settings.nativBaseURL {
-                settings.nativBaseURL = url
-                nativChanged = true
+        if let url = AppSettings.validatedBaseLLMURL(model.baseLLMURLText) {
+            if url != settings.baseLLMURL {
+                settings.baseLLMURL = url
+                llmChanged = true
             }
         }
-        model.nativURLText = settings.nativBaseURL.absoluteString
-        if nativChanged { refreshNativModels() }
+        model.baseLLMURLText = settings.baseLLMURL.absoluteString
+        if llmChanged { refreshLocalLLMModels() }
     }
 
     /// 키 값은 로그에 남기지 않는다.
@@ -135,14 +135,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     /// 엔진 Picker용. 받지 못하면 로컬 서버의 모델 항목 없이 둔다.
-    private func refreshNativModels() {
-        nativModelsTask?.cancel()
-        let baseURL = settings.nativBaseURL
-        let apiKey = keychain.read(account: KeychainStore.nativAccount)
-        nativModelsTask = Task { [weak self] in
-            let ids = (try? await NativModels.list(baseURL: baseURL, apiKey: apiKey)) ?? []
+    private func refreshLocalLLMModels() {
+        llmModelsTask?.cancel()
+        let baseURL = settings.baseLLMURL
+        let apiKey = keychain.read(account: KeychainStore.llmAccount)
+        llmModelsTask = Task { [weak self] in
+            let ids = (try? await LocalLLMModels.list(baseURL: baseURL, apiKey: apiKey)) ?? []
             guard !Task.isCancelled, let self else { return }
-            self.model.nativModelIDs = ids
+            self.model.llmModelIDs = ids
         }
     }
 

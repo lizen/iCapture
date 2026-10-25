@@ -38,8 +38,8 @@ final class ResultModel: ObservableObject {
     }
 
     /// 로컬(자동) + Claude 두 개 + 로컬 서버의 모델들. 지금 고른 엔진이 목록에 없으면(예: 로컬 서버가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
-    func setNativModels(_ ids: [String]) {
-        var options = Self.baseChoices + ids.map { EngineChoice.nativ(modelID: $0) }
+    func setLocalLLMModels(_ ids: [String]) {
+        var options = Self.baseChoices + ids.map { EngineChoice.localLLM(modelID: $0) }
         if !options.contains(selectedEngine) { options.append(selectedEngine) }
         engineOptions = options
     }

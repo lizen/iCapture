@@ -22,7 +22,7 @@ final class AppCoordinator: NSObject {
     private var currentPNG: Data?
     private var isCapturing = false
     private var pendingEditSave: Task<Void, Never>?
-    private var nativModelsTask: Task<Void, Never>?
+    private var llmModelsTask: Task<Void, Never>?
 
     init(settings: AppSettings, history: HistoryStore, keychain: KeychainStore) {
         self.settings = settings
@@ -125,11 +125,11 @@ final class AppCoordinator: NSObject {
         switch choice {
         case .claude(let model):
             ClaudeEngine(model: model, apiKey: keychain.read(account: KeychainStore.claudeAccount))
-        case .nativ(let modelID):
-            NativEngine(
-                baseURL: settings.nativBaseURL,
+        case .localLLM(let modelID):
+            LocalLLMEngine(
+                baseURL: settings.baseLLMURL,
                 modelID: modelID,
-                apiKey: keychain.read(account: KeychainStore.nativAccount)
+                apiKey: keychain.read(account: KeychainStore.llmAccount)
             )
         }
     }
@@ -311,18 +311,18 @@ final class AppCoordinator: NSObject {
 
     private func showResultWindow() {
         resultWindow.show()
-        refreshNativModels()
+        refreshLocalLLMModels()
     }
 
     /// 창을 열 때마다 로컬 서버의 모델 목록을 다시 받는다. 실패하면 그 모델 항목 없이 둔다.
-    private func refreshNativModels() {
-        nativModelsTask?.cancel()
-        let baseURL = settings.nativBaseURL
-        let apiKey = keychain.read(account: KeychainStore.nativAccount)
-        nativModelsTask = Task { [weak self] in
-            let ids = (try? await NativModels.list(baseURL: baseURL, apiKey: apiKey)) ?? []
+    private func refreshLocalLLMModels() {
+        llmModelsTask?.cancel()
+        let baseURL = settings.baseLLMURL
+        let apiKey = keychain.read(account: KeychainStore.llmAccount)
+        llmModelsTask = Task { [weak self] in
+            let ids = (try? await LocalLLMModels.list(baseURL: baseURL, apiKey: apiKey)) ?? []
             guard !Task.isCancelled, let self else { return }
-            self.resultWindow.model.setNativModels(ids)
+            self.resultWindow.model.setLocalLLMModels(ids)
         }
     }
 

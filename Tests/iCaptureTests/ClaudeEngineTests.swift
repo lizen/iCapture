@@ -109,7 +109,7 @@ final class ClaudeEngineTests: XCTestCase {
         XCTAssertEqual(RecognitionError.http(status: 529, message: "x").userMessage, "요청이 몰려 잠시 처리할 수 없어요. 잠시 후 다시 인식해 주세요.")
         XCTAssertEqual(RecognitionError.http(status: 500, message: "boom").userMessage, "인식 중 오류가 났어요 (500): boom")
         XCTAssertEqual(EngineChoice.claude(.sonnet).displayName, "Claude Sonnet 5.5")
-        XCTAssertEqual(EngineChoice.nativ(modelID: "m").displayName, "로컬: m")
+        XCTAssertEqual(EngineChoice.localLLM(modelID: "m").displayName, "로컬: m")
         XCTAssertEqual(EngineChoice.localAuto.displayName, "로컬 모델 (자동)")
     }
 

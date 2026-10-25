@@ -1,10 +1,10 @@
 import XCTest
 
-final class NativEngineTests: XCTestCase {
+final class LocalLLMEngineTests: XCTestCase {
     private let baseURL = URL(string: "http://127.0.0.1:8080")!
 
-    private func engine(apiKey: String? = "nativ") -> NativEngine {
-        NativEngine(baseURL: baseURL, modelID: "qwen-vl", apiKey: apiKey, session: .stubbed)
+    private func engine(apiKey: String? = "nativ") -> LocalLLMEngine {
+        LocalLLMEngine(baseURL: baseURL, modelID: "qwen-vl", apiKey: apiKey, session: .stubbed)
     }
 
     private func chunk(_ content: String?, finish: String? = nil) -> String {
@@ -39,7 +39,7 @@ final class NativEngineTests: XCTestCase {
     }
 
     func testTrailingSlashBaseURLJoinsCleanly() throws {
-        let req = try NativEngine(baseURL: URL(string: "http://127.0.0.1:8080/")!, modelID: "m", apiKey: nil)
+        let req = try LocalLLMEngine(baseURL: URL(string: "http://127.0.0.1:8080/")!, modelID: "m", apiKey: nil)
             .makeRequest(png: Data())
         XCTAssertEqual(req.url?.absoluteString, "http://127.0.0.1:8080/v1/chat/completions")
     }
@@ -86,29 +86,29 @@ final class NativEngineTests: XCTestCase {
 
     func testHTTPErrorUsesErrorMessage() async {
         StubURLProtocol.respond(status: 400, body: #"{"error":{"message":"model not loaded"}}"#)
-        await assertStreamThrows(.nativHTTP(status: 400, message: "model not loaded"))
+        await assertStreamThrows(.localLLMHTTP(status: 400, message: "model not loaded"))
     }
 
     func testNonJSONErrorBodyUsedAsMessage() async {
         StubURLProtocol.respond(status: 502, body: "Bad Gateway")
-        await assertStreamThrows(.nativHTTP(status: 502, message: "Bad Gateway"))
+        await assertStreamThrows(.localLLMHTTP(status: 502, message: "Bad Gateway"))
     }
 
-    func testUnauthorizedUsesNativKeyMessage() async {
+    func testUnauthorizedUsesLocalLLMKeyMessage() async {
         StubURLProtocol.respond(status: 401, body: #"{"error":{"message":"bad key"}}"#)
-        await assertStreamThrows(.nativHTTP(status: 401, message: "bad key"))
-        XCTAssertEqual(RecognitionError.nativHTTP(status: 401, message: "x").userMessage,
-                       "로컬 서버 API 키가 올바르지 않아요. 설정에서 확인해 주세요.")
-        XCTAssertEqual(RecognitionError.nativHTTP(status: 500, message: "boom").userMessage,
+        await assertStreamThrows(.localLLMHTTP(status: 401, message: "bad key"))
+        XCTAssertEqual(RecognitionError.localLLMHTTP(status: 401, message: "x").userMessage,
+                       "로컬 LLM API 키가 올바르지 않아요. 설정에서 확인해 주세요.")
+        XCTAssertEqual(RecognitionError.localLLMHTTP(status: 500, message: "boom").userMessage,
                        "인식 중 오류가 났어요 (500): boom")
-        XCTAssertEqual(RecognitionError.nativHTTP(status: 429, message: "busy").userMessage,
+        XCTAssertEqual(RecognitionError.localLLMHTTP(status: 429, message: "busy").userMessage,
                        "인식 중 오류가 났어요 (429): busy")
     }
 
     func testConnectionErrorsMapToUnreachable() async {
         for code in [URLError.Code.cannotConnectToHost, .networkConnectionLost, .cannotFindHost] {
             StubURLProtocol.fail(URLError(code))
-            await assertStreamThrows(.nativUnreachable(url: "http://127.0.0.1:8080"))
+            await assertStreamThrows(.localLLMUnreachable(url: "http://127.0.0.1:8080"))
         }
     }
 
@@ -124,7 +124,7 @@ final class NativEngineTests: XCTestCase {
     }
 
     func testListModelsRequestUsesShortTimeout() {
-        let req = NativModels.makeRequest(baseURL: baseURL, apiKey: "nativ")
+        let req = LocalLLMModels.makeRequest(baseURL: baseURL, apiKey: "nativ")
         XCTAssertEqual(req.httpMethod, "GET")
         XCTAssertEqual(req.url?.absoluteString, "http://127.0.0.1:8080/v1/models")
         XCTAssertEqual(req.value(forHTTPHeaderField: "Authorization"), "Bearer nativ")
@@ -133,20 +133,20 @@ final class NativEngineTests: XCTestCase {
 
     func testListModels() async throws {
         StubURLProtocol.respond(status: 200, body: #"{"data":[{"id":"a"},{"id":"b"}]}"#)
-        let ids = try await NativModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
+        let ids = try await LocalLLMModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
         XCTAssertEqual(ids, ["a", "b"])
     }
 
-    func testListModelsEmptyThrowsNoNativModel() async {
+    func testListModelsEmptyThrowsNoLocalLLMModel() async {
         StubURLProtocol.respond(status: 200, body: #"{"data":[]}"#)
-        await assertListThrows(.noNativModel)
+        await assertListThrows(.noLocalLLMModel)
     }
 
     func testListModelsMapsConnectionAndHTTPErrors() async {
         StubURLProtocol.fail(URLError(.cannotConnectToHost))
-        await assertListThrows(.nativUnreachable(url: "http://127.0.0.1:8080"))
+        await assertListThrows(.localLLMUnreachable(url: "http://127.0.0.1:8080"))
         StubURLProtocol.respond(status: 401, body: #"{"error":{"message":"bad key"}}"#)
-        await assertListThrows(.nativHTTP(status: 401, message: "bad key"))
+        await assertListThrows(.localLLMHTTP(status: 401, message: "bad key"))
     }
 
     private func assertStreamThrows(_ expected: RecognitionError, file: StaticString = #filePath, line: UInt = #line) async {
@@ -160,7 +160,7 @@ final class NativEngineTests: XCTestCase {
 
     private func assertListThrows(_ expected: RecognitionError, file: StaticString = #filePath, line: UInt = #line) async {
         do {
-            _ = try await NativModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
+            _ = try await LocalLLMModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
             XCTFail("에러가 나야 한다", file: file, line: line)
         } catch {
             XCTAssertEqual(error as? RecognitionError, expected, file: file, line: line)
@@ -168,26 +168,26 @@ final class NativEngineTests: XCTestCase {
     }
 
     func testPreferredVisionModelPicksVisionLookingID() {
-        XCTAssertEqual(NativModels.preferredVisionModel(["bge-m3", "Qwen2.5-VL-7B-Instruct", "llama-3"]), "Qwen2.5-VL-7B-Instruct")
-        XCTAssertEqual(NativModels.preferredVisionModel(["mlx-community/gemma-3-12b-it", "whisper"]), "mlx-community/gemma-3-12b-it")
-        XCTAssertEqual(NativModels.preferredVisionModel(["only-model"]), "only-model")
-        XCTAssertEqual(NativModels.preferredVisionModel(["Qwen3-VL-Embedding-2B", "Qwen3-VL-30B-Instruct"]), "Qwen3-VL-30B-Instruct")
+        XCTAssertEqual(LocalLLMModels.preferredVisionModel(["bge-m3", "Qwen2.5-VL-7B-Instruct", "llama-3"]), "Qwen2.5-VL-7B-Instruct")
+        XCTAssertEqual(LocalLLMModels.preferredVisionModel(["mlx-community/gemma-3-12b-it", "whisper"]), "mlx-community/gemma-3-12b-it")
+        XCTAssertEqual(LocalLLMModels.preferredVisionModel(["only-model"]), "only-model")
+        XCTAssertEqual(LocalLLMModels.preferredVisionModel(["Qwen3-VL-Embedding-2B", "Qwen3-VL-30B-Instruct"]), "Qwen3-VL-30B-Instruct")
     }
 
     func testListPutsLoadedModelsFirst() async throws {
         StubURLProtocol.respond(status: 200, body: #"{"data":[{"id":"coder","loaded":false},{"id":"Qwen3-VL-30B","loaded":true},{"id":"Qwen3-VL-Embedding","loaded":false}]}"#)
-        let ids = try await NativModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
+        let ids = try await LocalLLMModels.list(baseURL: baseURL, apiKey: nil, session: .stubbed)
         XCTAssertEqual(ids, ["Qwen3-VL-30B", "coder", "Qwen3-VL-Embedding"])
     }
 
     func testAutoModelWithUnreachableServerReportsUnreachable() async {
         StubURLProtocol.fail(URLError(.cannotConnectToHost))
-        let auto = NativEngine(baseURL: baseURL, modelID: "", apiKey: nil, session: .stubbed)
+        let auto = LocalLLMEngine(baseURL: baseURL, modelID: "", apiKey: nil, session: .stubbed)
         do {
             _ = try await collect(auto.recognize(png: Data()))
             XCTFail("expected error")
         } catch {
-            XCTAssertEqual(error as? RecognitionError, .nativUnreachable(url: "http://127.0.0.1:8080"))
+            XCTAssertEqual(error as? RecognitionError, .localLLMUnreachable(url: "http://127.0.0.1:8080"))
         }
     }
 }
