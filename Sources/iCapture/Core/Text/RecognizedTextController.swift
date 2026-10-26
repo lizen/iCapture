@@ -8,7 +8,8 @@ final class PlainTextView: NSTextView {
     var isUndoBlocked = false
 
     override var undoManager: UndoManager? { ownUndoManager }
-    override var writablePasteboardTypes: [NSPasteboard.PasteboardType] { [.string] }
+    // 쓰기 형식은 바꾸지 않는다. `isRichText = false`면 기본값이 이미 서식 없는 텍스트(NSStringPboardType) 하나뿐이고,
+    // `.string`으로 덮어쓰면 `writeSelection(to:type:)`가 그 형식을 몰라 ⌘C가 아무것도 복사하지 못한다.
     override var readablePasteboardTypes: [NSPasteboard.PasteboardType] { [.string] }
 
     // 창 안의 ⌘Z/⌘⇧Z(`undo:`/`redo:`)는 그냥 두면 응답자 체인을 따라 NSWindow의 undo 관리자로 간다.

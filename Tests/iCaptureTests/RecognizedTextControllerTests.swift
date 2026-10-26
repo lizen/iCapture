@@ -31,8 +31,35 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(pb.string(forType: .string), "SELECT 1")
     }
 
-    func testWritableTypesArePlain() {
-        XCTAssertEqual(RecognizedTextController().textView.writablePasteboardTypes, [.string])
+    /// 드래그로 고른 뒤 ⌘C(`copy:`)가 쓰는 경로. 고른 부분만, 서식 없는 텍스트로 들어가야 한다.
+    func testSelectionCopyWritesSelectedPlainText() {
+        let pb = NSPasteboard(name: .init("icapture.tests.\(UUID())"))
+        defer { pb.releaseGlobally() }
+        let c = RecognizedTextController(); c.beginReplacement(); c.setStreamingText("SELECT name FROM users"); c.endReplacement()
+        c.setMarks(confusion: [NSRange(location: 7, length: 1)], revision: [])
+        c.textView.setSelectedRange(NSRange(location: 7, length: 4))
+        pb.clearContents()
+
+        XCTAssertTrue(c.textView.writeSelection(to: pb, types: c.textView.writablePasteboardTypes))
+        XCTAssertEqual(pb.string(forType: .string), "name")
+        XCTAssertNil(pb.data(forType: .rtf))
+        XCTAssertNil(pb.data(forType: .rtfd))
+    }
+
+    /// ⌘V(`paste:`)가 쓰는 경로. 다른 앱에서 복사한 서식 있는 글도 글자만 들어와야 한다.
+    func testPasteReadsPlainText() {
+        let pb = NSPasteboard(name: .init("icapture.tests.\(UUID())"))
+        defer { pb.releaseGlobally() }
+        pb.clearContents()
+        pb.writeObjects([NSAttributedString(string: "users", attributes: [.foregroundColor: NSColor.red])])
+        let c = RecognizedTextController(); c.beginReplacement(); c.setStreamingText("FROM "); c.endReplacement()
+        c.isEditable = true
+        c.textView.setSelectedRange(NSRange(location: 5, length: 0))
+
+        XCTAssertTrue(c.textView.readSelection(from: pb))
+        XCTAssertEqual(c.string, "FROM users")
+        let pastedColor = c.textView.textStorage?.attribute(.foregroundColor, at: 5, effectiveRange: nil) as? NSColor
+        XCTAssertNotEqual(pastedColor, NSColor.red)
     }
 
     func testUserEditRemovesTouchedMark() {
