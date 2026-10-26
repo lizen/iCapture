@@ -58,6 +58,8 @@ targets:
       Release: Configuration/Signing.xcconfig
     sources:
       - path: Sources/iCapture
+      # 앱 아이콘. 원본은 Design/AppIcon.svg, PNG는 `swift scripts/render-app-icon.swift`로 다시 만든다.
+      - path: Resources/Assets.xcassets
     dependencies:
       - sdk: Security.framework
       - sdk: ScreenCaptureKit.framework
@@ -71,6 +73,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.local.iCapture
         # 프로젝트 폴더 이름(icapture)과 상관없이 앱 파일은 iCapture.app으로 만든다.
         PRODUCT_NAME: iCapture
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Resources/Info.plist
         MARKETING_VERSION: 0.1.0
