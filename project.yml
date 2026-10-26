@@ -69,6 +69,8 @@ targets:
         ARCHS: arm64
         ENABLE_HARDENED_RUNTIME: YES
         PRODUCT_BUNDLE_IDENTIFIER: dev.local.iCapture
+        # 프로젝트 폴더 이름(icapture)과 상관없이 앱 파일은 iCapture.app으로 만든다.
+        PRODUCT_NAME: iCapture
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Resources/Info.plist
         MARKETING_VERSION: 0.1.0

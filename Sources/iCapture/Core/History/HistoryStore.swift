@@ -32,7 +32,7 @@ final class HistoryStore: @unchecked Sendable {
     static var defaultDirectory: URL {
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("github", isDirectory: true)
-            .appendingPathComponent("iCapture", isDirectory: true)
+            .appendingPathComponent("icapture", isDirectory: true)
             .appendingPathComponent("hist", isDirectory: true)
     }
 

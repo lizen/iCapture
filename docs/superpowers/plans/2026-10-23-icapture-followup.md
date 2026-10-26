@@ -41,7 +41,7 @@
 기본은 로컬 서버만 재서 비용이 들지 않는다.
 
 ```bash
-ICAPTURE_ACCURACY=1 make -C ~/github/iCapture accuracy
+ICAPTURE_ACCURACY=1 make -C ~/github/icapture accuracy
 ```
 
 - 로컬 서버 주소·모델을 바꾸려면 `LOCAL_BASE_URL=http://127.0.0.1:8000`(vLLM 등), `LOCAL_MODEL=<모델 id>`, `LOCAL_API_KEY=<키>`를 앞에 붙인다. 모델을 안 주면 메모리에 올라간 비전 모델을 고른다.

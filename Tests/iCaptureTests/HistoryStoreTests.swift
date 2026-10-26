@@ -136,6 +136,6 @@ final class HistoryStoreTests: XCTestCase {
     }
 
     func testDefaultDirectory() {
-        XCTAssertEqual(HistoryStore.defaultDirectory.path, NSHomeDirectory() + "/github/iCapture/hist")
+        XCTAssertEqual(HistoryStore.defaultDirectory.path, NSHomeDirectory() + "/github/icapture/hist")
     }
 }

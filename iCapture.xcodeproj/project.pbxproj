@@ -928,6 +928,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.iCapture;
+				PRODUCT_NAME = iCapture;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -966,6 +967,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.iCapture;
+				PRODUCT_NAME = iCapture;
 				SDKROOT = macosx;
 			};
 			name = Debug;

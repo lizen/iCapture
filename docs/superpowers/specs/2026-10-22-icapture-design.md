@@ -2,7 +2,7 @@
 
 - 작성일: 2026-10-22
 - 상태: 승인됨 (2026-10-23), 2026-10-23 개정: 기본 엔진을 로컬 모델로 변경
-- 프로젝트 폴더: `~/github/iCapture`
+- 프로젝트 폴더: `~/github/icapture`
 
 > 표기 규칙: **(결정)** 은 사용자가 직접 정한 것, **(설계자 판단)** 은 대화 중 Claude가 정하고 사용자에게 알린 것, **(빌더 재량)** 은 구현하는 사람이 정해도 되는 것이다.
 
@@ -236,7 +236,7 @@ AI 모델은 글자마다 얼마나 확신하는지를 잘 알려주지 않는�
 - 11번째를 캡처하면 가장 오래된 것을 지우고 새 캡처를 넣는다. 먼저 들어온 것이 먼저 나가는 FIFO 방식이다.
   - 사용자는 이 동작을 "LIFO"라고 불렀다. 실제로 원하는 동작은 위 설명과 같다.
 - 목록에는 최근 것이 맨 위에 보인다. **(설계자 판단)**
-- 저장 위치는 프로젝트 폴더 안의 `~/github/iCapture/hist/`다. **(결정)** 캡처 이미지가 git에 올라가지 않도록 `hist/`는 `.gitignore`에 넣는다. **(설계자 판단)**
+- 저장 위치는 프로젝트 폴더 안의 `~/github/icapture/hist/`다. **(결정)** 캡처 이미지가 git에 올라가지 않도록 `hist/`는 `.gitignore`에 넣는다. **(설계자 판단)**
 - 이력마다 다음을 저장한다. **(설계자 판단)**
   - 캡처 이미지(PNG)
   - 최종 텍스트. 사용자가 고쳤다면 고친 내용으로 저장한다.
@@ -262,7 +262,7 @@ AI 모델은 글자마다 얼마나 확신하는지를 잘 알려주지 않는�
   - AppKit `AppDelegate` 위에 SwiftUI 화면을 얹는다. 메뉴 막대 아이콘은 `NSStatusItem`으로 만든다(`Sources/Nativ/AppDelegate.swift`).
   - 전역 단축키는 Carbon `RegisterEventHotKey`로 등록한다(`Sources/Nativ/Features/VoiceCapture/FnControlShortcutMonitor.swift`).
 - Dock 아이콘 없이 메뉴 막대에만 상주한다(`LSUIElement`).
-- 프로젝트 폴더: `~/github/iCapture`. 앱 이름: `iCapture`. **(결정)**
+- 프로젝트 폴더: `~/github/icapture`. 앱 이름: `iCapture`. **(결정)**
 
 ### 빌더 재량
 
