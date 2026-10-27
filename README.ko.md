@@ -104,6 +104,16 @@ make xcode-run
 
 처음 `⌘⇧2`를 누르면 macOS가 화면 기록 권한을 물어요. 시스템 설정에서 iCapture를 허용한 뒤, 메뉴 막대 아이콘의 "종료"로 끄고 다시 실행해 주세요.
 
+**(선택) DMG로 설치하기**
+
+빌드 폴더에서 실행하는 대신 `/Applications`에 설치해 두고 싶다면 DMG를 만들어요.
+
+```bash
+make dmg
+```
+
+Release로 빌드해서, 앱과 `Applications` 바로가기를 담은 `build/iCapture-<버전>.dmg`를 만들어요. 내 Apple Development 인증서로 서명하고 **공증(notarization)은 하지 않아서**, 내 맥에서 쓰는 용도예요. 다른 맥으로 옮겨 쓸 때는 처음 한 번 앱을 우클릭해서 "열기"를 골라 주세요. 다른 사람에게 배포하려면 Developer ID 인증서와 공증이 따로 필요해요.
+
 ## 로컬 LLM 연결
 
 설정 창(`⌘,`)의 "로컬 LLM 서버 주소"에 서버 주소를 넣어요. 주소 뒤에 `/v1/chat/completions`와 `/v1/models`가 붙는 OpenAI 호환 서버면 어디든 돼요.
@@ -161,6 +171,7 @@ ICAPTURE_ACCURACY=1 make accuracy
 make test                                   # 단위 테스트 (138개)
 make test ONLY=iCaptureTests/ClaudeEngineTests  # 테스트 하나만
 make xcode-build                            # 빌드만
+make dmg                                    # 내 맥에서 쓸 Release DMG (공증 없음)
 make clean                                  # build/ 삭제
 swift scripts/render-app-icon.swift         # Design/AppIcon.svg로 앱 아이콘 다시 만들기
 swift scripts/render-fixtures.swift         # 정확도 검증용 그림 다시 만들기

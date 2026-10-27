@@ -1,4 +1,4 @@
-.PHONY: xcode-generate xcode-build xcode-run test accuracy clean
+.PHONY: xcode-generate xcode-build xcode-run test accuracy dmg clean
 
 XCODE_DERIVED_DATA ?= build/DerivedData
 ICAPTURE_APP := $(XCODE_DERIVED_DATA)/Build/Products/Debug/iCapture.app
@@ -23,6 +23,10 @@ test: xcode-generate
 # ANTHROPIC_API_KEY를 주면 Claude Sonnet·Haiku도 잰다(API 비용 발생). ICAPTURE_ACCURACY=1이 없으면 건너뛴다.
 accuracy: xcode-generate
 	xcodebuild test -project iCapture.xcodeproj -scheme iCaptureAccuracy -destination 'platform=macOS,arch=arm64' -derivedDataPath $(XCODE_DERIVED_DATA)
+
+# 내 맥이나 직접 옮겨 쓰는 용도의 DMG(Release 빌드, Apple Development 서명, 공증 없음). 결과: build/iCapture-<버전>.dmg
+dmg: xcode-generate
+	XCODE_DERIVED_DATA=$(XCODE_DERIVED_DATA) ./scripts/make-dmg.sh
 
 clean:
 	rm -rf build

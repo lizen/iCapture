@@ -111,6 +111,14 @@ This generates the Xcode project from `project.yml`, builds `iCapture.app`, and 
 
 **3. Grant Screen Recording.** The first `⌘⇧2` asks for permission. Allow iCapture in System Settings, then quit it from the menu bar icon and launch it again.
 
+**Optional: install from a DMG.** To keep a copy in `/Applications` instead of running it from the build folder:
+
+```sh
+make dmg
+```
+
+This builds a Release version and writes `build/iCapture-<version>.dmg` containing the app and an `Applications` shortcut. The DMG is signed with your Apple Development certificate and is **not notarized**, so it's meant for your own Macs. On another Mac, open the app once with right-click → **Open**. Sharing it with other people requires a Developer ID certificate and notarization.
+
 ## Connect a local LLM
 
 Open **Settings** (`⌘,`) and enter your server's base URL under *Local LLM server URL*. Any server that serves `/v1/chat/completions` and `/v1/models` works.
@@ -199,6 +207,7 @@ icapture/
 make test                                       # Unit tests (138)
 make test ONLY=iCaptureTests/ClaudeEngineTests  # A single test class
 make xcode-build                                # Build only
+make dmg                                        # Release DMG for your own Macs (not notarized)
 make clean                                      # Remove build/
 swift scripts/render-app-icon.swift             # Regenerate the app icon from Design/AppIcon.svg
 swift scripts/render-fixtures.swift             # Regenerate the accuracy screenshots
