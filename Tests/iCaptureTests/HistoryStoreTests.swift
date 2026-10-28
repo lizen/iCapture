@@ -2,7 +2,7 @@ import XCTest
 
 extension HistoryEntry {
     static func fixture(text: String, at: Date = .now) -> HistoryEntry {
-        HistoryEntry(id: UUID(), capturedAt: at, kind: .sql, engineName: "Claude Sonnet 5.5", text: text)
+        HistoryEntry(id: UUID(), capturedAt: at, kind: .sql, engine: .claude(.sonnet), text: text)
     }
 }
 
@@ -119,6 +119,29 @@ final class HistoryStoreTests: XCTestCase {
         let entry = HistoryEntry.fixture(text: "SELECT 1")
         let json = try JSONEncoder().encode(entry)
         XCTAssertFalse(String(decoding: json, as: UTF8.self).contains("firstLine"))
+    }
+
+    func testEngineRoundTripsAndNameIsNotStored() throws {
+        let entry = HistoryEntry(id: UUID(), capturedAt: .now, kind: .sql, engine: .localLLM(modelID: "qwen"), text: "x")
+        let json = try JSONEncoder().encode(entry)
+        XCTAssertFalse(String(decoding: json, as: UTF8.self).contains("engineName"))
+        XCTAssertEqual(try JSONDecoder().decode(HistoryEntry.self, from: json).engine, .localLLM(modelID: "qwen"))
+    }
+
+    /// Entries saved before the engine was stored keep only its display name, in the language active at capture time.
+    func testDecodesLegacyEngineNames() throws {
+        let cases: [(String, EngineChoice)] = [
+            ("Claude Sonnet 5.5", .claude(.sonnet)),
+            ("Claude Haiku 5.5", .claude(.haiku)),
+            ("로컬 모델 (자동)", .localAuto),
+            ("Local model (auto)", .localAuto),
+            ("로컬: qwen3-vl", .localLLM(modelID: "qwen3-vl")),
+            ("Local: qwen3-vl", .localLLM(modelID: "qwen3-vl")),
+        ]
+        for (name, expected) in cases {
+            let json = #"{"id":"\#(UUID().uuidString)","capturedAt":0,"kind":"sql","engineName":"\#(name)","text":""}"#
+            XCTAssertEqual(try JSONDecoder().decode(HistoryEntry.self, from: Data(json.utf8)).engine, expected, name)
+        }
     }
 
     func testMatchesSearchIgnoringCase() {

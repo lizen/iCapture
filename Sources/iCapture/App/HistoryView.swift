@@ -76,7 +76,7 @@ struct HistoryView: View {
                 .frame(maxHeight: .infinity)
                 Divider()
                 HStack {
-                    Text(entry.engineName)
+                    Text(entry.engine.displayName)
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                     Spacer()

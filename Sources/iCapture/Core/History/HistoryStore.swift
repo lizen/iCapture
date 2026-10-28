@@ -4,7 +4,8 @@ struct HistoryEntry: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     let capturedAt: Date
     var kind: TextKind
-    var engineName: String
+    /// Stored as the engine itself, not its name, so the name follows the current UI language.
+    var engine: EngineChoice
     var text: String
 
     /// The first non-empty line of text, trimmed. Not stored.
@@ -23,7 +24,50 @@ struct HistoryEntry: Codable, Identifiable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, capturedAt, kind, engineName, text
+        case id, capturedAt, kind, engine, text
+        /// Older entries stored only the engine's display name. Read for compatibility, never written.
+        case engineName
+    }
+
+    init(id: UUID, capturedAt: Date, kind: TextKind, engine: EngineChoice, text: String) {
+        self.id = id
+        self.capturedAt = capturedAt
+        self.kind = kind
+        self.engine = engine
+        self.text = text
+    }
+
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        capturedAt = try c.decode(Date.self, forKey: .capturedAt)
+        kind = try c.decode(TextKind.self, forKey: .kind)
+        text = try c.decode(String.self, forKey: .text)
+        if let engine = try c.decodeIfPresent(EngineChoice.self, forKey: .engine) {
+            self.engine = engine
+        } else {
+            engine = Self.engine(legacyName: try c.decode(String.self, forKey: .engineName))
+        }
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(capturedAt, forKey: .capturedAt)
+        try c.encode(kind, forKey: .kind)
+        try c.encode(engine, forKey: .engine)
+        try c.encode(text, forKey: .text)
+    }
+
+    /// Maps a stored Korean or English display name back to its engine. Unknown names fall back to the default engine.
+    private static func engine(legacyName name: String) -> EngineChoice {
+        if let claude = ClaudeModel.allCases.first(where: { EngineChoice.claude($0).displayName == name }) {
+            return .claude(claude)
+        }
+        for prefix in ["로컬: ", "Local: "] where name.hasPrefix(prefix) {
+            return .localLLM(modelID: String(name.dropFirst(prefix.count)))
+        }
+        return .localAuto
     }
 }
 

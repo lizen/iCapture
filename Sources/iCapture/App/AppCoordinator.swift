@@ -106,9 +106,9 @@ final class AppCoordinator: NSObject {
 
         let model = resultWindow.model
         model.image = currentPNG.flatMap { NSImage(data: $0) }
-        model.historyEngineName = entry.engineName
+        model.historyEngineName = entry.engine.displayName
         model.canRecognizeAgain = currentPNG != nil
-        model.select(Self.choice(named: entry.engineName, in: model.engineOptions) ?? settings.engine)
+        model.select(model.engineOptions.contains(entry.engine) ? entry.engine : settings.engine)
         statusMenu?.iconState = .idle
         showResultWindow()
     }
@@ -138,7 +138,7 @@ final class AppCoordinator: NSObject {
 
     private func beginCapture(png: Data, image: NSImage) {
         let choice = settings.engine
-        let entry = HistoryEntry(id: UUID(), capturedAt: Date(), kind: .other, engineName: choice.displayName, text: "")
+        let entry = HistoryEntry(id: UUID(), capturedAt: Date(), kind: .other, engine: choice, text: "")
         do {
             try history.add(entry, png: png)
         } catch {
@@ -210,7 +210,7 @@ final class AppCoordinator: NSObject {
         if var entry = currentEntry, entry.id == entryID, phase.shouldReplaceStoredResult(text: session.text) {
             entry.text = session.text
             entry.kind = session.kind
-            entry.engineName = session.engineChoice.displayName
+            entry.engine = session.engineChoice
             currentEntry = entry
             cancelPendingEditSave()
             save(entry)
@@ -324,10 +324,6 @@ final class AppCoordinator: NSObject {
             guard !Task.isCancelled, let self else { return }
             self.resultWindow.model.setLocalLLMModels(ids)
         }
-    }
-
-    private static func choice(named name: String, in options: [EngineChoice]) -> EngineChoice? {
-        options.first { $0.displayName == name }
     }
 
     // MARK: - Hotkey and alerts
