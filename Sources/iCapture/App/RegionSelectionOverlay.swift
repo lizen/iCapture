@@ -6,6 +6,8 @@ final class RegionSelectionOverlay {
     private var panel: OverlayPanel?
     private var continuation: CheckedContinuation<CGRect?, Never>?
     private var observers: [NSObjectProtocol] = []
+    /// 오버레이를 띄우며 십자 커서를 올렸는지. 닫을 때 한 번만 내려 원래 커서로 돌린다.
+    private var pushedCursor = false
 
     /// 반환하는 rect는 AppKit 전역 좌표(왼쪽 아래 원점, 포인트). esc나 너무 작은 영역이면 nil.
     func selectRegion() async -> (rect: CGRect, screen: NSScreen)? {
@@ -61,6 +63,10 @@ final class RegionSelectionOverlay {
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
         panel.makeFirstResponder(view)
+        // 커서 영역(cursor rect)은 앱이 활성화된 뒤 마우스가 움직여야 적용된다. 메뉴 막대 앱은 바로 활성화되지 않을 때가 있어서
+        // 오버레이가 뜨는 순간 십자 커서를 직접 올린다. 이후로는 SelectionView의 추적 영역이 계속 십자로 맞춘다.
+        NSCursor.crosshair.push()
+        pushedCursor = true
     }
 
     private func finish(with rect: CGRect?) {
@@ -86,6 +92,12 @@ final class RegionSelectionOverlay {
         observers = []
         panel?.orderOut(nil)
         panel = nil
+        if pushedCursor {
+            NSCursor.pop()
+            pushedCursor = false
+        }
+        // 오버레이가 사라진 뒤 아래 창이 커서를 다시 정하기 전까지 기본 화살표로 둔다.
+        NSCursor.arrow.set()
     }
 }
 
@@ -109,6 +121,25 @@ private final class SelectionView: NSView {
         addCursorRect(bounds, cursor: .crosshair)
     }
 
+    /// 앱이 활성 상태가 아니어도(`.activeAlways`) 마우스가 오버레이 위에 있으면 십자 커서를 유지한다.
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(
+            rect: .zero,
+            options: [.cursorUpdate, .mouseMoved, .activeAlways, .inVisibleRect],
+            owner: self
+        ))
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        NSCursor.crosshair.set()
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        NSCursor.crosshair.set()
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         // 선택 영역 바깥만 어둡게 칠한다. 안쪽은 거의 투명하게 두되, 완전 투명이면 클릭이 뒤로 새서 알파를 살짝 남긴다.
         let dim = NSBezierPath(rect: bounds)
@@ -129,6 +160,7 @@ private final class SelectionView: NSView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        NSCursor.crosshair.set()
         startPoint = clamped(convert(event.locationInWindow, from: nil))
         selection = nil
         needsDisplay = true
@@ -136,6 +168,7 @@ private final class SelectionView: NSView {
 
     override func mouseDragged(with event: NSEvent) {
         guard let startPoint else { return }
+        NSCursor.crosshair.set()
         let current = clamped(convert(event.locationInWindow, from: nil))
         selection = CGRect(
             x: min(startPoint.x, current.x),
