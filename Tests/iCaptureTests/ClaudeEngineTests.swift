@@ -105,12 +105,12 @@ final class ClaudeEngineTests: XCTestCase {
     }
 
     func testUserMessages() {
-        XCTAssertEqual(RecognitionError.http(status: 401, message: "x").userMessage, "Claude API 키가 올바르지 않아요. 설정에서 확인해 주세요.")
-        XCTAssertEqual(RecognitionError.http(status: 529, message: "x").userMessage, "요청이 몰려 잠시 처리할 수 없어요. 잠시 후 다시 인식해 주세요.")
-        XCTAssertEqual(RecognitionError.http(status: 500, message: "boom").userMessage, "인식 중 오류가 났어요 (500): boom")
+        XCTAssertEqual(RecognitionError.http(status: 401, message: "x").userMessage, "Your Claude API key is invalid. Check it in Settings.")
+        XCTAssertEqual(RecognitionError.http(status: 529, message: "x").userMessage, "Too many requests right now. Try recognizing again shortly.")
+        XCTAssertEqual(RecognitionError.http(status: 500, message: "boom").userMessage, "Recognition failed (500): boom")
         XCTAssertEqual(EngineChoice.claude(.sonnet).displayName, "Claude Sonnet 5.5")
-        XCTAssertEqual(EngineChoice.localLLM(modelID: "m").displayName, "로컬: m")
-        XCTAssertEqual(EngineChoice.localAuto.displayName, "로컬 모델 (자동)")
+        XCTAssertEqual(EngineChoice.localLLM(modelID: "m").displayName, "Local: m")
+        XCTAssertEqual(EngineChoice.localAuto.displayName, "Local model (auto)")
     }
 
     private func assertStreamThrows(_ expected: RecognitionError, file: StaticString = #filePath, line: UInt = #line) async {

@@ -71,7 +71,7 @@ final class AppCoordinator: NSObject {
                 let png = try ImageEncoder.png(from: image)
                 beginCapture(png: png, image: NSImage(cgImage: image, size: selection.rect.size))
             } catch {
-                NSLog("iCapture 캡처 실패: %@", String(describing: error))
+                NSLog("iCapture capture failed: %@", String(describing: error))
                 showCaptureFailedAlert(error)
             }
         }
@@ -142,7 +142,7 @@ final class AppCoordinator: NSObject {
         do {
             try history.add(entry, png: png)
         } catch {
-            NSLog("iCapture 이력 추가 실패: %@", String(describing: error))
+            NSLog("iCapture failed to add history: %@", String(describing: error))
         }
         refreshRecentEntries()
         currentEntry = entry
@@ -268,7 +268,7 @@ final class AppCoordinator: NSObject {
         do {
             try history.update(entry)
         } catch {
-            NSLog("iCapture 이력 저장 실패: %@", String(describing: error))
+            NSLog("iCapture failed to save history: %@", String(describing: error))
         }
         refreshRecentEntries()
     }
@@ -288,7 +288,7 @@ final class AppCoordinator: NSObject {
         do {
             try history.clear()
         } catch {
-            NSLog("iCapture 이력 비우기 실패: %@", String(describing: error))
+            NSLog("iCapture failed to clear history: %@", String(describing: error))
         }
         refreshRecentEntries()
     }
@@ -345,12 +345,12 @@ final class AppCoordinator: NSObject {
             settings.hotKey = combo
             statusMenu?.setCaptureShortcut(combo)
         } catch {
-            NSLog("iCapture 단축키 등록 실패: %@", String(describing: error))
+            NSLog("iCapture failed to register hotkey: %@", String(describing: error))
             if combo != previous {
                 do {
                     try registerCaptureHotKey(previous)
                 } catch {
-                    NSLog("iCapture 이전 단축키 복원 실패: %@", String(describing: error))
+                    NSLog("iCapture failed to restore previous hotkey: %@", String(describing: error))
                 }
             }
             Task { [weak self] in self?.showHotKeyConflictAlert(combo) }
@@ -359,25 +359,25 @@ final class AppCoordinator: NSObject {
 
     private func showHotKeyConflictAlert(_ combo: HotKeyCombo) {
         let alert = NSAlert()
-        alert.messageText = "\(combo.displayString) 단축키를 다른 앱이 쓰고 있어요. 설정에서 다른 조합을 골라 주세요."
-        alert.addButton(withTitle: "확인")
+        alert.messageText = String(localized: "The \(combo.displayString) shortcut is in use by another app. Choose a different combination in Settings.")
+        alert.addButton(withTitle: String(localized: "OK"))
         NSApp.activate()
         alert.runModal()
     }
 
     private func showCaptureFailedAlert(_ error: Error) {
         let alert = NSAlert()
-        alert.messageText = "캡처하지 못했어요: \(error.localizedDescription)"
-        alert.addButton(withTitle: "확인")
+        alert.messageText = String(localized: "Couldn't capture: \(error.localizedDescription)")
+        alert.addButton(withTitle: String(localized: "OK"))
         NSApp.activate()
         alert.runModal()
     }
 
     private func showPermissionAlert() {
         let alert = NSAlert()
-        alert.messageText = "화면 기록 권한이 필요해요"
-        alert.addButton(withTitle: "시스템 설정 열기")
-        alert.addButton(withTitle: "취소")
+        alert.messageText = String(localized: "Screen Recording permission is required")
+        alert.addButton(withTitle: String(localized: "Open System Settings"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
         NSApp.activate()
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         // The first time, this adds the app to the list in System Settings. If we already asked, nothing is shown.
@@ -417,24 +417,24 @@ final class AppCoordinator: NSObject {
         let mainMenu = NSMenu()
 
         let appMenu = NSMenu(title: "iCapture")
-        appMenu.addItem(menuItem("설정…", action: #selector(showSettings), key: ",", target: self))
+        appMenu.addItem(menuItem(String(localized: "Settings…"), action: #selector(showSettings), key: ",", target: self))
         appMenu.addItem(.separator())
-        appMenu.addItem(menuItem("종료", action: #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
+        appMenu.addItem(menuItem(String(localized: "Quit"), action: #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
         addSubmenu(appMenu, to: mainMenu)
 
-        let editMenu = NSMenu(title: "편집")
-        editMenu.addItem(menuItem("실행 취소", action: Selector(("undo:")), key: "z"))
-        editMenu.addItem(menuItem("실행 복귀", action: Selector(("redo:")), key: "z", modifiers: [.command, .shift]))
+        let editMenu = NSMenu(title: String(localized: "Edit"))
+        editMenu.addItem(menuItem(String(localized: "Undo"), action: Selector(("undo:")), key: "z"))
+        editMenu.addItem(menuItem(String(localized: "Redo"), action: Selector(("redo:")), key: "z", modifiers: [.command, .shift]))
         editMenu.addItem(.separator())
-        editMenu.addItem(menuItem("오려두기", action: #selector(NSText.cut(_:)), key: "x"))
-        editMenu.addItem(menuItem("복사", action: #selector(NSText.copy(_:)), key: "c"))
-        editMenu.addItem(menuItem("붙여넣기", action: #selector(NSText.paste(_:)), key: "v"))
-        editMenu.addItem(menuItem("전체 선택", action: #selector(NSText.selectAll(_:)), key: "a"))
+        editMenu.addItem(menuItem(String(localized: "Cut"), action: #selector(NSText.cut(_:)), key: "x"))
+        editMenu.addItem(menuItem(String(localized: "Copy"), action: #selector(NSText.copy(_:)), key: "c"))
+        editMenu.addItem(menuItem(String(localized: "Paste"), action: #selector(NSText.paste(_:)), key: "v"))
+        editMenu.addItem(menuItem(String(localized: "Select All"), action: #selector(NSText.selectAll(_:)), key: "a"))
         addSubmenu(editMenu, to: mainMenu)
 
-        let windowMenu = NSMenu(title: "윈도우")
-        windowMenu.addItem(menuItem("닫기", action: #selector(NSWindow.performClose(_:)), key: "w"))
-        windowMenu.addItem(menuItem("모든 이력…", action: #selector(showHistory), key: "y", target: self))
+        let windowMenu = NSMenu(title: String(localized: "Window"))
+        windowMenu.addItem(menuItem(String(localized: "Close"), action: #selector(NSWindow.performClose(_:)), key: "w"))
+        windowMenu.addItem(menuItem(String(localized: "All History…"), action: #selector(showHistory), key: "y", target: self))
         addSubmenu(windowMenu, to: mainMenu)
 
         NSApp.mainMenu = mainMenu

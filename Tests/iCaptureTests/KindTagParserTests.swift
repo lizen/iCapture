@@ -83,7 +83,7 @@ final class KindTagParserTests: XCTestCase {
     }
 
     func testBadges() {
-        XCTAssertEqual(TextKind.allCases.map(\.badge), ["SQL", "로그", "표", "기타"])
+        XCTAssertEqual(TextKind.allCases.map(\.badge), ["SQL", "Log", "Table", "Other"])
     }
 
     func testPromptConstants() {

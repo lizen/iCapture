@@ -1,6 +1,6 @@
 import Foundation
 
-/// Engine choice, local server (Nativ, Ollama, vLLM) URL, and hotkey. Saved to UserDefaults as soon as a value changes.
+/// Engine choice, local server (Nativ, Ollama, vLLM) URL, hotkey, and UI language. Saved to UserDefaults as soon as a value changes.
 /// Defaults are used when nothing is saved or a value can't be read.
 @MainActor
 final class AppSettings: ObservableObject {
@@ -17,12 +17,30 @@ final class AppSettings: ObservableObject {
     @Published var hotKey: HotKeyCombo {
         didSet { save(hotKey, forKey: "hotKey") }
     }
+    /// Also writes the app's `AppleLanguages` override, which macOS applies at the next launch.
+    @Published var language: AppLanguage {
+        didSet {
+            defaults.set(language.rawValue, forKey: "language")
+            if let languages = language.appleLanguages {
+                defaults.set(languages, forKey: "AppleLanguages")
+            } else {
+                defaults.removeObject(forKey: "AppleLanguages")
+            }
+        }
+    }
+    /// The language the UI was launched with. The UI keeps it until the app restarts.
+    let languageAtLaunch: AppLanguage
+
+    var needsRestartForLanguage: Bool { language != languageAtLaunch }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         engine = Self.load(EngineChoice.self, forKey: "engine", from: defaults) ?? .localAuto
         baseLLMURL = defaults.string(forKey: "nativBaseURL").flatMap(Self.validatedBaseLLMURL) ?? Self.defaultBaseLLMURL
         hotKey = Self.load(HotKeyCombo.self, forKey: "hotKey", from: defaults) ?? .default
+        let storedLanguage = defaults.string(forKey: "language").flatMap(AppLanguage.init(rawValue:)) ?? .system
+        language = storedLanguage
+        languageAtLaunch = storedLanguage
     }
 
     /// Returns a URL only for a trimmed http or https address with a host; otherwise nil (the settings window keeps the previous value).

@@ -98,11 +98,11 @@ final class LocalLLMEngineTests: XCTestCase {
         StubURLProtocol.respond(status: 401, body: #"{"error":{"message":"bad key"}}"#)
         await assertStreamThrows(.localLLMHTTP(status: 401, message: "bad key"))
         XCTAssertEqual(RecognitionError.localLLMHTTP(status: 401, message: "x").userMessage,
-                       "로컬 LLM API 키가 올바르지 않아요. 설정에서 확인해 주세요.")
+                       "Your local LLM API key is invalid. Check it in Settings.")
         XCTAssertEqual(RecognitionError.localLLMHTTP(status: 500, message: "boom").userMessage,
-                       "인식 중 오류가 났어요 (500): boom")
+                       "Recognition failed (500): boom")
         XCTAssertEqual(RecognitionError.localLLMHTTP(status: 429, message: "busy").userMessage,
-                       "인식 중 오류가 났어요 (429): busy")
+                       "Recognition failed (429): busy")
     }
 
     func testConnectionErrorsMapToUnreachable() async {
@@ -115,7 +115,7 @@ final class LocalLLMEngineTests: XCTestCase {
     func testTimeoutMapsToTimedOut() async {
         StubURLProtocol.fail(URLError(.timedOut))
         await assertStreamThrows(.timedOut)
-        XCTAssertEqual(RecognitionError.timedOut.userMessage, "응답이 너무 오래 걸려요. 잠시 후 다시 인식해 주세요.")
+        XCTAssertEqual(RecognitionError.timedOut.userMessage, "The response is taking too long. Try recognizing again shortly.")
     }
 
     func testOtherURLErrorMapsToNetwork() async {

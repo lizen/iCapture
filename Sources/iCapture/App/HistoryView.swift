@@ -21,14 +21,14 @@ struct HistoryView: View {
 
     private var sidebar: some View {
         VStack(spacing: 0) {
-            TextField("검색", text: $model.query)
+            TextField("Search", text: $model.query)
                 .textFieldStyle(.roundedBorder)
                 .padding(8)
             Divider()
             list
             Divider()
             HStack {
-                Button("이력 비우기", action: onClear)
+                Button("Clear History", action: onClear)
                     .disabled(model.entries.isEmpty)
                 Spacer()
             }
@@ -40,7 +40,7 @@ struct HistoryView: View {
     private var list: some View {
         let entries = model.filteredEntries
         if entries.isEmpty {
-            placeholder(model.entries.isEmpty ? "아직 캡처가 없어요" : "검색 결과가 없어요")
+            placeholder(model.entries.isEmpty ? String(localized: "No captures yet") : String(localized: "No results"))
         } else {
             List(entries, selection: $model.selectedID) { entry in
                 HistoryRow(entry: entry)
@@ -80,7 +80,7 @@ struct HistoryView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("결과 창에서 열기") { model.onOpenInResult?(entry) }
+                    Button("Open in Result Window") { model.onOpenInResult?(entry) }
                 }
                 .padding(8)
             }
@@ -101,7 +101,7 @@ private struct HistoryRow: View {
     let entry: HistoryEntry
 
     private static let timeStyle = Date.FormatStyle(date: .abbreviated, time: .shortened)
-        .locale(Locale(identifier: "ko_KR"))
+        .locale(AppLanguage.displayLocale)
 
     var body: some View {
         HStack(spacing: 8) {
@@ -111,7 +111,7 @@ private struct HistoryRow: View {
                 .padding(.vertical, 2)
                 .background(Capsule().fill(Color.secondary.opacity(0.2)))
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.firstLine.isEmpty ? "(텍스트 없음)" : entry.firstLine)
+                Text(entry.firstLine.isEmpty ? String(localized: "(no text)") : entry.firstLine)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Text(entry.capturedAt.formatted(Self.timeStyle))

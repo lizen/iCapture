@@ -16,6 +16,7 @@ final class SettingsModel: ObservableObject {
     var onCommit: (() -> Void)?
     var onToggleRecording: (() -> Void)?
     var onSetLaunchAtLogin: ((Bool) -> Void)?
+    var onRelaunch: (() -> Void)?
 
     /// Local (auto) + two Claude models + the local server's models. If the selected engine isn't listed (e.g. the server is down), it's appended so the Picker isn't empty.
     func engineOptions(selected: EngineChoice) -> [EngineChoice] {
@@ -51,6 +52,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         model.onCommit = { [weak self] in self?.commit() }
         model.onToggleRecording = { [weak self] in self?.toggleRecording() }
         model.onSetLaunchAtLogin = { [weak self] enabled in self?.setLaunchAtLogin(enabled) }
+        model.onRelaunch = { AppRelauncher.relaunch() }
     }
 
     /// Called right before the app quits. Quitting skips `windowWillClose`, so keys and URL being typed are committed here.
@@ -130,7 +132,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         do {
             try keychain.write(value, account: account)
         } catch {
-            NSLog("iCapture 키체인 저장 실패(%@): %@", account, String(describing: error))
+            NSLog("iCapture failed to save to Keychain (%@): %@", account, String(describing: error))
         }
     }
 
@@ -196,9 +198,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             }
         } catch {
             let alert = NSAlert()
-            alert.messageText = "로그인할 때 자동 실행을 바꾸지 못했어요"
+            alert.messageText = String(localized: "Couldn't change Launch at Login")
             alert.informativeText = error.localizedDescription
-            alert.addButton(withTitle: "확인")
+            alert.addButton(withTitle: String(localized: "OK"))
             alert.runModal()
         }
         model.launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -212,7 +214,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         hosting.sizingOptions = [.preferredContentSize]
         let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .closable]
-        window.title = "설정"
+        window.title = String(localized: "Settings")
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]
         window.delegate = self

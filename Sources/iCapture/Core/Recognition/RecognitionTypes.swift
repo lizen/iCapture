@@ -8,9 +8,9 @@ extension TextKind {
     var badge: String {
         switch self {
         case .sql: "SQL"
-        case .log: "로그"
-        case .table: "표"
-        case .other: "기타"
+        case .log: String(localized: "Log")
+        case .table: String(localized: "Table")
+        case .other: String(localized: "Other")
         }
     }
 }
@@ -39,8 +39,8 @@ enum EngineChoice: Codable, Hashable, Sendable {
         switch self {
         case .claude(.sonnet): "Claude Sonnet 5.5"
         case .claude(.haiku): "Claude Haiku 5.5"
-        case .localLLM(let modelID) where modelID.isEmpty: "로컬 모델 (자동)"
-        case .localLLM(let modelID): "로컬: \(modelID)"
+        case .localLLM(let modelID) where modelID.isEmpty: String(localized: "Local model (auto)")
+        case .localLLM(let modelID): String(localized: "Local: \(modelID)")
         }
     }
 }
@@ -73,27 +73,27 @@ enum RecognitionError: Error, Equatable, Sendable {
     var userMessage: String {
         switch self {
         case .missingAPIKey:
-            "설정에서 Claude API 키를 입력해 주세요."
+            String(localized: "Enter your Claude API key in Settings.")
         case .http(401, _):
-            "Claude API 키가 올바르지 않아요. 설정에서 확인해 주세요."
+            String(localized: "Your Claude API key is invalid. Check it in Settings.")
         case .localLLMHTTP(401, _):
-            "로컬 LLM API 키가 올바르지 않아요. 설정에서 확인해 주세요."
+            String(localized: "Your local LLM API key is invalid. Check it in Settings.")
         case .http(429, _), .http(529, _):
-            "요청이 몰려 잠시 처리할 수 없어요. 잠시 후 다시 인식해 주세요."
+            String(localized: "Too many requests right now. Try recognizing again shortly.")
         case .http(let status, let message), .localLLMHTTP(let status, let message):
-            "인식 중 오류가 났어요 (\(status)): \(message)"
+            String(localized: "Recognition failed (\(status)): \(message)")
         case .refusal:
-            "모델이 이 이미지의 처리를 거절했어요. 다른 엔진으로 다시 인식해 보세요."
+            String(localized: "The model declined to process this image. Try another engine.")
         case .truncated:
-            "결과가 너무 길어서 끝까지 받지 못했어요."
+            String(localized: "The result was too long to receive completely.")
         case .localLLMUnreachable(let url):
-            "로컬 LLM 서버(\(url))에 연결할 수 없어요. Nativ나 Ollama 같은 로컬 LLM 서버를 켜 주세요."
+            String(localized: "Can't connect to the local LLM server (\(url)). Start a local LLM server such as Nativ or Ollama.")
         case .noLocalLLMModel:
-            "로컬 LLM 서버에 올라간 모델이 없어요. 이미지를 읽을 수 있는 모델을 올려 주세요."
+            String(localized: "No model is loaded on the local LLM server. Load a model that can read images.")
         case .timedOut:
-            "응답이 너무 오래 걸려요. 잠시 후 다시 인식해 주세요."
+            String(localized: "The response is taking too long. Try recognizing again shortly.")
         case .network(let message):
-            "네트워크 오류: \(message)"
+            String(localized: "Network error: \(message)")
         }
     }
 }

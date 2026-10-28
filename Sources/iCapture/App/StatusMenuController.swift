@@ -50,21 +50,21 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        let capture = NSMenuItem(title: "영역 캡처", action: #selector(captureSelected), keyEquivalent: captureShortcut.key)
+        let capture = NSMenuItem(title: String(localized: "Capture Region"), action: #selector(captureSelected), keyEquivalent: captureShortcut.key)
         capture.keyEquivalentModifierMask = captureShortcut.modifiers
         capture.target = self
         menu.addItem(capture)
 
         menu.addItem(.separator())
-        menu.addItem(.sectionHeader(title: "최근 캡처"))
+        menu.addItem(.sectionHeader(title: String(localized: "Recent Captures")))
         let recent = recentEntries.prefix(Self.recentLimit)
         if recent.isEmpty {
-            let empty = NSMenuItem(title: "아직 캡처가 없어요", action: nil, keyEquivalent: "")
+            let empty = NSMenuItem(title: String(localized: "No captures yet"), action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         } else {
             let formatter = RelativeDateTimeFormatter()
-            formatter.locale = Locale(identifier: "ko_KR")
+            formatter.locale = AppLanguage.displayLocale
             formatter.unitsStyle = .short
             let now = Date()
             for entry in recent {
@@ -77,10 +77,10 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         }
 
         menu.addItem(.separator())
-        menu.addItem(item("모든 이력…", key: "y", action: #selector(historySelected)))
-        menu.addItem(item("설정…", key: ",", action: #selector(settingsSelected)))
+        menu.addItem(item(String(localized: "All History…"), key: "y", action: #selector(historySelected)))
+        menu.addItem(item(String(localized: "Settings…"), key: ",", action: #selector(settingsSelected)))
 
-        let quit = NSMenuItem(title: "종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit = NSMenuItem(title: String(localized: "Quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         quit.target = NSApp
         menu.addItem(quit)
     }
@@ -96,7 +96,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     /// Truncates the first line to 28 characters ("…" when longer) and appends the relative time in gray at the right tab stop.
     private static func title(for entry: HistoryEntry, relativeTime: String) -> NSAttributedString {
         let line = entry.firstLine
-        let shown = line.isEmpty ? "(텍스트 없음)" : line.count > titleLimit ? String(line.prefix(titleLimit)) + "…" : line
+        let shown = line.isEmpty ? String(localized: "(no text)") : line.count > titleLimit ? String(line.prefix(titleLimit)) + "…" : line
 
         let paragraph = NSMutableParagraphStyle()
         paragraph.tabStops = [NSTextTab(textAlignment: .right, location: 320)]
@@ -171,7 +171,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
             return true
         }
         image.isTemplate = false
-        image.accessibilityDescription = "iCapture: 새 결과"
+        image.accessibilityDescription = String(localized: "iCapture: new result")
         return image
     }
 

@@ -147,8 +147,9 @@ Open **Settings** (`⌘,`) and enter your server's base URL under *Local LLM ser
 | Try another engine | Pick it in the result window's engine menu and press **Recognize Again** |
 | Open history | Menu bar icon → recent captures, or `⌘Y` |
 | Settings | Menu bar icon → Settings…, or `⌘,` |
+| Change the UI language | Settings → **Language**: System Default, English or 한국어. Press **Restart Now** to apply. |
 
-> The app's UI is currently in Korean. Button names above are translated.
+On first launch the UI follows your macOS language: Korean on a Korean system, English otherwise.
 
 ## Measuring accuracy
 
@@ -219,7 +220,6 @@ swift scripts/render-fixtures.swift             # Regenerate the accuracy screen
 - Local models still drop indentation and confuse look-alike characters now and then (see [Measuring accuracy](#measuring-accuracy)).
 - Built for personal use: no App Store distribution and no sandbox.
 - Region capture only — no full-screen or window capture, and no video recording.
-- The UI is in Korean.
 
 ## Credits
 

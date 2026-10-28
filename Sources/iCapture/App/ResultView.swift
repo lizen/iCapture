@@ -44,7 +44,7 @@ struct ResultView: View {
 
     private var toolbar: some View {
         HStack(spacing: 8) {
-            Picker("엔진", selection: $model.selectedEngine) {
+            Picker("Engine", selection: $model.selectedEngine) {
                 ForEach(model.engineOptions, id: \.self) { choice in
                     Text(choice.displayName).tag(choice)
                 }
@@ -52,16 +52,16 @@ struct ResultView: View {
             .fixedSize()
             .disabled(model.isRunning)
 
-            Button("↻ 다시 인식") { model.onRecognizeAgain?(model.selectedEngine) }
+            Button("↻ Recognize Again") { model.onRecognizeAgain?(model.selectedEngine) }
                 .disabled(model.isRunning || !model.canRecognizeAgain)
-            Button("전체 복사") { model.onCopyAll?() }
+            Button("Copy All") { model.onCopyAll?() }
                 .disabled(model.isRunning)
 
             Spacer(minLength: 8)
 
             if phase == .verifying {
-                Button("1차 결과 복사") { model.onCopyAll?() }
-                Button("검사 건너뛰기") {
+                Button("Copy First Pass") { model.onCopyAll?() }
+                Button("Skip Check") {
                     model.skipPressed = true
                     model.onSkipVerification?()
                 }
@@ -69,7 +69,7 @@ struct ResultView: View {
             }
             if model.isRunning {
                 // esc is intercepted by ResultWindowController and sent as the same cancel.
-                Button("취소") { model.onCancel?() }
+                Button("Cancel") { model.onCancel?() }
             }
         }
         .padding(.horizontal, 12)
@@ -137,20 +137,21 @@ private struct StatusLine: View {
         let elapsed = String(format: "%.1f", session.elapsed(now: now))
         switch session.phase {
         case .reading:
-            return "이미지 읽는 중… \(elapsed)초"
+            return String(localized: "Reading image… \(elapsed)s")
         case .receiving:
-            return "텍스트 받는 중… \(session.lineCount)줄 · \(elapsed)초"
+            let lines = String(localized: "\(session.lineCount) lines")
+            return String(localized: "Receiving text… \(lines) · \(elapsed)s")
         case .verifying:
-            return "정밀 검사 중… \(elapsed)초 · 편집은 검사 후"
+            return String(localized: "Checking… \(elapsed)s · editing after the check")
         case .done:
             var parts = ""
-            if marks.confusion > 0 { parts += "확인 필요 \(marks.confusion)곳 · " }
-            if marks.revision > 0 { parts += "검사로 수정 \(marks.revision)곳 · " }
-            return parts + "\(session.engineChoice.displayName) · \(elapsed)초"
+            if marks.confusion > 0 { parts += String(localized: "\(marks.confusion) to review") + " · " }
+            if marks.revision > 0 { parts += String(localized: "\(marks.revision) fixed by check") + " · " }
+            return parts + String(localized: "\(session.engineChoice.displayName) · \(elapsed)s")
         case .failed(let error):
             return "⚠︎ \(error.userMessage)"
         case .cancelled:
-            return "취소됨 · \(elapsed)초"
+            return String(localized: "Cancelled · \(elapsed)s")
         }
     }
 

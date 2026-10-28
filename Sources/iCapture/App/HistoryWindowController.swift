@@ -78,10 +78,10 @@ final class HistoryWindowController: NSObject, NSWindowDelegate {
         let count = model.entries.count
         guard count > 0 else { return }
         let alert = NSAlert()
-        alert.messageText = "이력 \(count)개를 모두 지울까요?"
-        let clear = alert.addButton(withTitle: "지우기")
+        alert.messageText = String(localized: "Delete all \(count) history entries?")
+        let clear = alert.addButton(withTitle: String(localized: "Delete"))
         clear.hasDestructiveAction = true
-        alert.addButton(withTitle: "취소")
+        alert.addButton(withTitle: String(localized: "Cancel"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         model.onClear?()
     }
@@ -101,7 +101,7 @@ final class HistoryWindowController: NSObject, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "이력"
+        window.title = String(localized: "History")
         window.isReleasedWhenClosed = false
         window.contentMinSize = NSSize(width: 640, height: 360)
         window.collectionBehavior = [.moveToActiveSpace]

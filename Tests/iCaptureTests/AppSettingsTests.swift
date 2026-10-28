@@ -76,4 +76,36 @@ final class AppSettingsTests: XCTestCase {
         defaults.set("127.0.0.1:8080", forKey: "nativBaseURL")
         XCTAssertEqual(AppSettings(defaults: defaults).baseLLMURL.absoluteString, "http://127.0.0.1:8080")
     }
+
+    // MARK: - Language
+
+    func testLanguageDefaultsToSystem() {
+        XCTAssertEqual(AppSettings(defaults: freshDefaults()).language, .system)
+    }
+
+    /// Choosing a language writes the app-level `AppleLanguages` override that macOS reads at launch;
+    /// going back to the system default removes it again.
+    func testLanguageWritesAppleLanguagesOverride() throws {
+        let defaults = freshDefaults()
+        let name = try XCTUnwrap(suiteNames.last)
+        let settings = AppSettings(defaults: defaults)
+
+        settings.language = .korean
+        XCTAssertEqual(defaults.persistentDomain(forName: name)?["AppleLanguages"] as? [String], ["ko"])
+        XCTAssertEqual(AppSettings(defaults: defaults).language, .korean)
+
+        settings.language = .english
+        XCTAssertEqual(defaults.persistentDomain(forName: name)?["AppleLanguages"] as? [String], ["en"])
+
+        settings.language = .system
+        XCTAssertNil(defaults.persistentDomain(forName: name)?["AppleLanguages"])
+        XCTAssertEqual(AppSettings(defaults: defaults).language, .system)
+    }
+
+    func testLanguageAtLaunchStaysFixedUntilRestart() {
+        let settings = AppSettings(defaults: freshDefaults())
+        settings.language = .korean
+        XCTAssertEqual(settings.languageAtLaunch, .system)
+        XCTAssertTrue(settings.needsRestartForLanguage)
+    }
 }
