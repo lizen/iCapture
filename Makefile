@@ -13,18 +13,18 @@ xcode-build: xcode-generate
 xcode-run: xcode-build
 	open $(ICAPTURE_APP)
 
-# 사용 예: make test ONLY=iCaptureTests/SmokeTests
+# Example: make test ONLY=iCaptureTests/SmokeTests
 test: xcode-generate
 	xcodebuild test -project iCapture.xcodeproj -scheme iCapture -destination 'platform=macOS,arch=arm64' -derivedDataPath $(XCODE_DERIVED_DATA) $(if $(ONLY),-only-testing:$(ONLY))
 
-# 실제 모델을 호출하는 정확도 측정. 사용 예: ICAPTURE_ACCURACY=1 make accuracy
-# 기본은 로컬 서버(Nativ·Ollama·vLLM, http://127.0.0.1:8080)만 잰다(비용 없음). 결과는 build/accuracy-report.md.
-# LOCAL_BASE_URL=http://127.0.0.1:8000(vLLM 등), LOCAL_MODEL=<모델 id>, LOCAL_API_KEY=<키>로 바꿀 수 있다.
-# ANTHROPIC_API_KEY를 주면 Claude Sonnet·Haiku도 잰다(API 비용 발생). ICAPTURE_ACCURACY=1이 없으면 건너뛴다.
+# Accuracy measurement that calls real models. Example: ICAPTURE_ACCURACY=1 make accuracy
+# Measures only the local server (Nativ, Ollama, vLLM; http://127.0.0.1:8080) by default, at no cost. Report: build/accuracy-report.md.
+# Override with LOCAL_BASE_URL=http://127.0.0.1:8000 (vLLM etc.), LOCAL_MODEL=<model id>, LOCAL_API_KEY=<key>.
+# With ANTHROPIC_API_KEY, Claude Sonnet and Haiku are measured too (billed API usage). Skipped unless ICAPTURE_ACCURACY=1.
 accuracy: xcode-generate
 	xcodebuild test -project iCapture.xcodeproj -scheme iCaptureAccuracy -destination 'platform=macOS,arch=arm64' -derivedDataPath $(XCODE_DERIVED_DATA)
 
-# 내 맥이나 직접 옮겨 쓰는 용도의 DMG(Release 빌드, Apple Development 서명, 공증 없음). 결과: build/iCapture-<버전>.dmg
+# DMG for your own Macs (Release build, Apple Development signature, not notarized). Output: build/iCapture-<version>.dmg
 dmg: xcode-generate
 	XCODE_DERIVED_DATA=$(XCODE_DERIVED_DATA) ./scripts/make-dmg.sh
 

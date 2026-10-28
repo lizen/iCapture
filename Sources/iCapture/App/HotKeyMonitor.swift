@@ -1,7 +1,7 @@
 import Carbon.HIToolbox
 
 enum HotKeyError: Error, Equatable {
-    /// 다른 앱이 이미 쓰고 있거나 시스템이 거부한 조합.
+    /// A combo another app already uses or the system refused.
     case unavailable(HotKeyCombo)
 }
 
@@ -23,7 +23,7 @@ final class HotKeyMonitor {
     private var handler: (@MainActor () -> Void)?
     private let signature = OSType(0x49_43_41_50) // "ICAP"
 
-    /// 이전 등록이 있으면 먼저 해제하고 새로 등록한다.
+    /// Unregisters any previous registration first, then registers the new one.
     func register(_ combo: HotKeyCombo, handler: @escaping @MainActor () -> Void) throws {
         unregister()
 

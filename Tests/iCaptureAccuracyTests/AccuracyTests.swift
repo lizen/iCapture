@@ -1,9 +1,9 @@
 import XCTest
 
-/// 정답이 있는 검증 세트에 진짜 엔진을 돌려 정확도와 시간을 재는 측정 도구.
-/// 시간이 오래 걸려서 `ICAPTURE_ACCURACY=1`일 때만 돈다(`make accuracy`).
-/// 기본은 로컬 서버(Nativ·Ollama·vLLM)만 재서 비용이 들지 않는다. `ANTHROPIC_API_KEY`를 주면 Claude도 잰다(API 비용 발생).
-/// 테스트는 실패로 끝나지 않고 `build/accuracy-report.md`에 엔진별 판정을 적는다. 기준을 판단하는 건 사람이다.
+/// Measurement tool that runs real engines over a ground-truth set to measure accuracy and time.
+/// Slow, so it runs only with `ICAPTURE_ACCURACY=1` (`make accuracy`).
+/// Measures only the local server (Nativ, Ollama, vLLM) by default, at no cost. With `ANTHROPIC_API_KEY`, Claude is measured too (billed).
+/// The test never fails on accuracy; it writes a per-engine verdict to `build/accuracy-report.md`. A person judges the criteria.
 @MainActor
 final class AccuracyTests: XCTestCase {
     private struct Entry: Decodable {
@@ -23,10 +23,10 @@ final class AccuracyTests: XCTestCase {
         let failure: String?
     }
 
-    /// 글자 일치율이 이 값 아래면 누락·잘림이 있는 것으로 보고 기준 미달로 센다(누락은 `unmarkedErrors`에 안 잡힌다).
+    /// Below this character accuracy a row counts as missing or truncated text and fails the criterion (omissions don't show in `unmarkedErrors`).
     static let accuracyFloor = 0.95
 
-    /// 한 장을 이 시간 안에 못 끝내면 취소하고 실패로 적는다.
+    /// A capture that doesn't finish within this time is cancelled and recorded as failed.
     private static let timeoutSeconds = 180.0
 
     func testMeasure() async throws {
@@ -68,7 +68,7 @@ final class AccuracyTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: reportURL.path), "보고서 파일이 써지지 않았어요: \(reportURL.path)")
     }
 
-    /// 환경 변수 없이 도는 보고서 판정 검사. 실패·부분 결과가 기준 통과로 세어지지 않아야 한다.
+    /// Report verdict check that runs without environment variables. Failed or partial results must not count as passing.
     func testCriterionCountsFailedAndPartialRowsAsFailing() {
         let sonnet = EngineChoice.claude(.sonnet).displayName
         func lines(_ rows: [Row]) -> String { Self.criterionLines(rows, engine: sonnet).joined(separator: "\n") }
@@ -95,7 +95,7 @@ final class AccuracyTests: XCTestCase {
         XCTAssertTrue(otherEngine.contains("판정할 SQL·로그 결과가 없어요"), otherEngine)
     }
 
-    // MARK: - 측정
+    // MARK: - Measurement
 
     private func measure(_ entry: Entry, png: Data, expected: String, engine: any RecognitionEngine) async -> Row {
         let session = RecognitionSession(png: png, engine: engine, ocr: VisionOCR())
@@ -130,8 +130,8 @@ final class AccuracyTests: XCTestCase {
         )
     }
 
-    /// 정답과 다른 글자 가운데 헷갈린 글자 표시(`confusionMarks`)에 걸리지 않은 것의 수.
-    /// 표에서는 `|---|` 구분 줄의 대시 개수 차이는 오류로 세지 않는다.
+    /// Number of characters that differ from the ground truth and aren't covered by look-alike marks (`confusionMarks`).
+    /// In tables, differences in the dash count of the `|---|` separator line aren't counted as errors.
     private static func unmarkedErrors(text: String, expected: String, marks: [NSRange], isTable: Bool) -> Int {
         var ignored = marks
         if isTable {
@@ -164,14 +164,14 @@ final class AccuracyTests: XCTestCase {
         return pieces
     }
 
-    // MARK: - 비교 도구
+    // MARK: - Comparison helpers
 
     private static func isSeparatorLine(_ line: Substring) -> Bool {
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         return trimmed.contains("-") && trimmed.allSatisfy { "|-: ".contains($0) }
     }
 
-    /// 셀 안팎의 공백을 없애고 구분 줄(`|---|---|`)의 대시 개수를 맞춰서, 표 모양이 같으면 같은 문자열이 되게 한다.
+    /// Removes whitespace inside and around cells and normalizes the separator line (`|---|---|`) so tables of the same shape compare equal.
     private static func normalizedTable(_ text: String) -> String {
         text.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
             let cells = line.split(separator: "|", omittingEmptySubsequences: false).dropFirst().dropLast()
@@ -181,7 +181,7 @@ final class AccuracyTests: XCTestCase {
         }.joined(separator: "\n")
     }
 
-    /// 글자(Character) 단위 편집 거리.
+    /// Edit distance over Characters.
     private static func levenshtein(_ a: String, _ b: String) -> Int {
         let a = Array(a), b = Array(b)
         if a.isEmpty { return b.count }
@@ -197,10 +197,10 @@ final class AccuracyTests: XCTestCase {
         return previous[b.count]
     }
 
-    // MARK: - 입력과 출력
+    // MARK: - Inputs and outputs
 
-    /// 로컬 서버는 늘 잰다. 모델을 정하지 않으면 앱과 같은 방식으로 서버 목록에서 고른다.
-    /// `ANTHROPIC_API_KEY`가 있으면 Claude 두 모델도 함께 잰다.
+    /// The local server is always measured. Without a model set, one is picked from the server's list the same way the app does.
+    /// With `ANTHROPIC_API_KEY`, both Claude models are measured as well.
     private static func engines(_ environment: [String: String]) async throws -> [any RecognitionEngine] {
         let baseURL = environment["LOCAL_BASE_URL"].flatMap(AppSettings.validatedBaseLLMURL) ?? AppSettings.defaultBaseLLMURL
         let localKey = environment["LOCAL_API_KEY"]
@@ -220,7 +220,7 @@ final class AccuracyTests: XCTestCase {
         return try Data(contentsOf: url)
     }
 
-    /// 저장소 루트의 `build/accuracy-report.md`. 테스트 번들의 작업 디렉터리가 아니라 이 파일 위치에서 찾는다.
+    /// `build/accuracy-report.md` at the repository root, located from this file rather than the test bundle's working directory.
     private static var reportURL: URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -257,7 +257,7 @@ final class AccuracyTests: XCTestCase {
         return lines.joined(separator: "\n") + "\n"
     }
 
-    /// 스펙 8장 기준(SQL·로그: 표시 없는 오류 0)을 엔진 하나에 대해 판정한다. 실패한 행과 글자 일치율이 바닥 아래인 행도 미달로 센다.
+    /// Judges spec section 8's criterion (SQL and logs: zero unmarked errors) for one engine. Failed rows and rows below the accuracy floor fail too.
     static func criterionLines(_ rows: [Row], engine: String) -> [String] {
         let codeRows = rows.filter { $0.engine == engine && ($0.kind == "sql" || $0.kind == "log") }
         let failing: [String] = codeRows.compactMap { row in

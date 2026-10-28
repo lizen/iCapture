@@ -1,5 +1,5 @@
-/// 엑셀 같은 스프레드시트 캡처에서 모델이 지시와 달리 함께 옮긴 열 머리글(A, B, C, …)과 행 번호(1, 2, 3, …)를 지운다.
-/// 본문 전체가 Markdown 표일 때만 손대고, 지울 것이 없으면 입력을 그대로 돌려준다.
+/// Removes the column letters (A, B, C, …) and row numbers (1, 2, 3, …) a model copied from a spreadsheet capture despite instructions.
+/// Touches the text only when the whole body is a Markdown table, and returns the input unchanged when there's nothing to remove.
 enum SpreadsheetHeaderCleanup {
     static func clean(_ markdown: String) -> String {
         let lines = markdown.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
@@ -47,7 +47,7 @@ enum SpreadsheetHeaderCleanup {
         }
     }
 
-    /// A, B, C … 또는 AA, AB …처럼 1씩 늘어나는 열 이름이 두 개 이상.
+    /// Two or more column names increasing by one, like A, B, C … or AA, AB ….
     private static func isConsecutiveColumnLetters(_ cells: [String]) -> Bool {
         let indices = cells.map(columnIndex)
         guard indices.count >= 2, let first = indices.first ?? nil else { return false }
@@ -59,11 +59,11 @@ enum SpreadsheetHeaderCleanup {
         return label.unicodeScalars.reduce(0) { $0 * 26 + Int($1.value) - 64 }
     }
 
-    /// 1씩 늘어나는 정수가 하나 이상.
+    /// One or more integers increasing by one.
     private static func isConsecutiveNumbers(_ cells: [String]) -> Bool {
         let numbers = cells.map { Int($0) }
         guard !numbers.isEmpty, let first = numbers.first ?? nil else { return false }
-        // 모델 출력은 아무 숫자나 될 수 있다. 아주 큰 값에서 `+`가 넘쳐 앱이 죽지 않게 넘침을 확인한다.
+        // Model output can contain any number. Check for overflow so `+` on a huge value can't crash the app.
         return numbers.enumerated().allSatisfy { index, number in
             let (expected, overflow) = first.addingReportingOverflow(index)
             return !overflow && number == expected

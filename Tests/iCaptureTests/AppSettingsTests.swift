@@ -37,7 +37,7 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(second.hotKey, HotKeyCombo(keyCode: 0, carbonModifiers: UInt32(controlKey | optionKey)))
     }
 
-    /// 이름을 바꾸기 전 버전이 저장한 값(`nativ` 엔진, `nativBaseURL` 키, `nativ-api-key` 계정)을 그대로 읽는다.
+    /// Reads values saved by versions before the rename (`nativ` engine, `nativBaseURL` key, `nativ-api-key` account) as they are.
     func testReadsValuesSavedBeforeRename() throws {
         let defaults = freshDefaults()
         defaults.set(Data(#"{"nativ":{"modelID":"qwen"}}"#.utf8), forKey: "engine")

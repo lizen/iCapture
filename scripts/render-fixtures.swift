@@ -1,8 +1,8 @@
-// 정확도 검증용 스크린샷을 그린다. 저장소 루트에서 `swift scripts/render-fixtures.swift`로 실행한다.
-// Tests/AccuracyFixtures/manifest.json의 항목마다 <name>.expected.txt를 읽어 <name>.png(2배 해상도)를 만든다.
-//  - render "text": 정답 파일의 글자를 그대로 그린다(고정폭 글꼴, 줄바꿈 없음).
-//  - render "html": 정답 파일의 Markdown 표를 HTML 표로 바꿔 NSAttributedString(html:)로 그린다.
-//    layout이 "excel"이면 열 머리글(A B C…)과 행 머리글(1 2 3…), 격자선을 덧붙인다.
+// Renders the accuracy screenshots. Run from the repository root with `swift scripts/render-fixtures.swift`.
+// For each entry in Tests/AccuracyFixtures/manifest.json, reads <name>.expected.txt and writes <name>.png (2x resolution).
+//  - render "text": draws the ground-truth characters as is (monospaced font, no wrapping).
+//  - render "html": turns the ground truth's Markdown table into an HTML table and draws it with NSAttributedString(html:).
+//    With layout "excel", column headers (A B C…), row headers (1 2 3…) and grid lines are added.
 import AppKit
 
 struct Entry: Decodable {
@@ -29,7 +29,7 @@ func color(_ white: CGFloat) -> NSColor {
     NSColor(srgbRed: white, green: white, blue: white, alpha: 1)
 }
 
-/// 정답 파일의 Markdown 표를 셀 문자열의 행 배열로 바꾼다(`|---|` 구분 줄은 버린다).
+/// Turns the ground truth's Markdown table into rows of cell strings (the `|---|` separator line is dropped).
 func tableRows(from markdown: String) -> [[String]] {
     markdown.split(separator: "\n", omittingEmptySubsequences: true).compactMap { line in
         let cells = line.split(separator: "|", omittingEmptySubsequences: false).dropFirst().dropLast()
@@ -44,7 +44,7 @@ func html(for rows: [[String]], entry: Entry) -> String {
     func escape(_ text: String) -> String {
         text.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;")
     }
-    // 열 너비를 가장 긴 내용(굵은 글씨 기준)에 맞춰 고정해서 셀 안에서 줄이 바뀌지 않게 한다.
+    // Fix column widths to the longest content (in bold) so text never wraps inside a cell.
     let measuringFont = NSFont.systemFont(ofSize: entry.pointSize, weight: .bold)
     let columnCount = rows.map(\.count).max() ?? 0
     let widths = (0..<columnCount).map { column in
@@ -93,7 +93,7 @@ func attributedString(for entry: Entry, expected: String, foreground: NSColor) -
         documentAttributes: nil
     ) else { fail("HTML을 읽지 못했어요: \(entry.name)") }
 
-    // HTML 가져오기는 글꼴을 임의로 고르므로, 크기와 굵기만 남기고 시스템 글꼴로 통일한다.
+    // HTML import picks fonts freely, so keep only size and weight and switch to the system font.
     imported.enumerateAttribute(.font, in: NSRange(location: 0, length: imported.length)) { value, range, _ in
         let isBold = (value as? NSFont)?.fontDescriptor.symbolicTraits.contains(.bold) ?? false
         let weight: NSFont.Weight = isBold ? .bold : .regular
@@ -106,7 +106,7 @@ func attributedString(for entry: Entry, expected: String, foreground: NSColor) -
 func render(_ text: NSAttributedString, isHTML: Bool, background: NSColor) -> Data {
     let storage = NSTextStorage(attributedString: text)
     let layoutManager = NSLayoutManager()
-    // 표는 컨테이너 너비에 맞춰 늘어나므로 좁게 잡아 내용 너비로 줄인다. 코드는 줄바꿈 없이 그린다.
+    // Tables stretch to the container width, so start narrow to shrink to the content width. Code is drawn without wrapping.
     let container = NSTextContainer(size: NSSize(width: isHTML ? 900 : 100_000, height: 100_000))
     container.lineFragmentPadding = 0
     layoutManager.addTextContainer(container)
@@ -124,7 +124,7 @@ func render(_ text: NSAttributedString, isHTML: Bool, background: NSColor) -> Da
     ), let bitmapContext = NSGraphicsContext(bitmapImageRep: rep) else { fail("비트맵을 만들지 못했어요") }
     rep.size = NSSize(width: width, height: height)
 
-    // 레이아웃 좌표는 위가 0이므로, 뒤집은 좌표계에서 그린다.
+    // Layout coordinates have 0 at the top, so draw in a flipped coordinate system.
     let cg = bitmapContext.cgContext
     cg.scaleBy(x: CGFloat(scale), y: CGFloat(scale))
     cg.translateBy(x: 0, y: CGFloat(height))
@@ -145,13 +145,13 @@ func render(_ text: NSAttributedString, isHTML: Bool, background: NSColor) -> Da
     return png
 }
 
-// MARK: - 실행
+// MARK: - Run
 
 guard let manifestData = try? Data(contentsOf: directory.appendingPathComponent("manifest.json")),
       let entries = try? JSONDecoder().decode([Entry].self, from: manifestData)
 else { fail("Tests/AccuracyFixtures/manifest.json을 읽을 수 없어요. 저장소 루트에서 실행해 주세요.") }
 
-_ = NSApplication.shared  // HTML 가져오기가 AppKit 초기화를 요구한다.
+_ = NSApplication.shared  // HTML import requires AppKit to be initialized.
 
 for entry in entries {
     guard let expected = try? String(contentsOf: directory.appendingPathComponent("\(entry.name).expected.txt"), encoding: .utf8)

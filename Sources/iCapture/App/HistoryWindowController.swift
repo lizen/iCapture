@@ -1,10 +1,10 @@
 import AppKit
 import SwiftUI
 
-/// 이력 창이 보여 줄 상태. 목록은 창을 열 때·key가 될 때·코디네이터가 이력을 쓸 때 다시 읽는다.
+/// State shown by the history window. The list is reloaded when the window opens, becomes key, or the coordinator writes history.
 @MainActor
 final class HistoryModel: ObservableObject {
-    /// 최신이 앞.
+    /// Newest first.
     @Published private(set) var entries: [HistoryEntry] = []
     @Published var query = ""
     @Published var selectedID: UUID? {
@@ -28,12 +28,12 @@ final class HistoryModel: ObservableObject {
         entries.filter { $0.matches(query) }
     }
 
-    /// 검색으로 가려진 항목은 오른쪽에 보여 주지 않는다.
+    /// Entries hidden by the search are not shown on the right.
     var selectedEntry: HistoryEntry? {
         filteredEntries.first { $0.id == selectedID }
     }
 
-    /// 고른 항목이 사라졌으면(밀려남·비우기) 맨 위 항목을 고른다.
+    /// If the selected entry is gone (evicted or cleared), select the top entry.
     func reload() {
         entries = (try? history.entries()) ?? []
         if let selectedID, entries.contains(where: { $0.id == selectedID }) { return }
@@ -45,7 +45,7 @@ final class HistoryModel: ObservableObject {
     }
 }
 
-/// 이력 창 하나를 앱이 끝날 때까지 다시 쓴다.
+/// One history window, reused until the app quits.
 @MainActor
 final class HistoryWindowController: NSObject, NSWindowDelegate {
     let model: HistoryModel
@@ -67,13 +67,13 @@ final class HistoryWindowController: NSObject, NSWindowDelegate {
         window.orderFrontRegardless()
     }
 
-    /// 창이 떠 있을 때만 다시 읽는다. 결과 창이 이력을 저장한 뒤 코디네이터가 부른다.
+    /// Reloads only while the window is open. The coordinator calls this after the result window saves history.
     func reloadIfVisible() {
         guard isVisible else { return }
         model.reload()
     }
 
-    /// "이력 비우기" 확인 알림. "지우기"를 고르면 `onClear`를 부른다.
+    /// Confirmation alert for "Clear History". Calls `onClear` when "Delete" is chosen.
     func confirmClear() {
         let count = model.entries.count
         guard count > 0 else { return }

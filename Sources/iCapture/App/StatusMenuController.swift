@@ -4,7 +4,7 @@ enum StatusIconState {
     case idle, busy, doneUnseen
 }
 
-/// 메뉴 막대 아이콘과 그 메뉴. 메뉴는 열 때마다(`menuNeedsUpdate`) 최근 캡처 목록과 함께 다시 만든다.
+/// The menu bar icon and its menu. The menu is rebuilt with the recent captures every time it opens (`menuNeedsUpdate`).
 @MainActor
 final class StatusMenuController: NSObject, NSMenuDelegate {
     var onCapture: (@MainActor () -> Void)?
@@ -12,7 +12,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     var onShowHistory: (@MainActor () -> Void)?
     var onShowSettings: (@MainActor () -> Void)?
 
-    /// 최신이 앞. 메뉴에는 앞의 5개만 보여 준다.
+    /// Newest first. The menu shows only the first 5.
     var recentEntries: [HistoryEntry] = []
 
     var iconState: StatusIconState = .idle {
@@ -40,7 +40,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         applyIconState()
     }
 
-    /// 메뉴의 "영역 캡처" 오른쪽에 보이는 단축키 표시를 바꾼다.
+    /// Updates the shortcut shown to the right of "Capture Region" in the menu.
     func setCaptureShortcut(_ combo: HotKeyCombo) {
         captureShortcut = combo.menuKeyEquivalent
     }
@@ -93,7 +93,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         return item
     }
 
-    /// 첫 줄을 28자로 자르고(넘치면 "…"), 오른쪽 탭 위치에 상대 시각을 회색으로 붙인다.
+    /// Truncates the first line to 28 characters ("…" when longer) and appends the relative time in gray at the right tab stop.
     private static func title(for entry: HistoryEntry, relativeTime: String) -> NSAttributedString {
         let line = entry.firstLine
         let shown = line.isEmpty ? "(텍스트 없음)" : line.count > titleLimit ? String(line.prefix(titleLimit)) + "…" : line
@@ -129,7 +129,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         }
     }
 
-    /// 0.8초 주기로 alpha 1.0 ↔ 0.35. 메뉴가 열려 있는 동안에도 돌도록 common 모드에 건다.
+    /// Alpha 1.0 <-> 0.35 every 0.8 seconds. Added to the common modes so it keeps running while the menu is open.
     private func startBlinking(_ button: NSStatusBarButton) {
         isDimmed = false
         let timer = Timer(timeInterval: 0.4, repeats: true) { [weak self, weak button] _ in
@@ -153,13 +153,13 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         return image
     }
 
-    /// 기본 아이콘을 메뉴 막대의 글자색으로 칠하고 오른쪽 위에 초록 점을 얹는다.
-    /// 점 색을 지키려고 template이 아닌 이미지로 만들고, 그리는 시점의 모양(라이트·다크)에 맞춰 칠한다.
+    /// Draws the default icon in the menu bar's text color and puts a green dot at the top right.
+    /// Built as a non-template image to keep the dot's color, and painted for the appearance (light or dark) at draw time.
     private static func iconWithGreenDot() -> NSImage? {
         guard let size = baseIcon()?.size else { return nil }
         let image = NSImage(size: size, flipped: false) { rect in
             guard let base = NSImage(systemSymbolName: "text.viewfinder", accessibilityDescription: nil) else { return false }
-            // 이 이미지의 그리기 버퍼는 투명하게 시작하므로 sourceAtop은 글리프 픽셀만 칠한다.
+            // The image's drawing buffer starts transparent, so sourceAtop paints only the glyph's pixels.
             base.draw(in: rect)
             NSColor.labelColor.set()
             rect.fill(using: .sourceAtop)

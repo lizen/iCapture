@@ -7,8 +7,8 @@ enum ImageEncoderError: Error, Equatable {
 }
 
 enum ImageEncoder {
-    /// PNG로 인코딩한다. `maxBytes`를 넘으면 0.8배씩 줄여 다시 인코딩한다(base64로 바꾸면 약 5MB).
-    /// 긴 변이 `maxDimension`을 넘으면 먼저 그 크기에 맞춘다.
+    /// Encodes as PNG. Above `maxBytes`, shrinks by 0.8x and re-encodes (about 5 MB once base64-encoded).
+    /// If the long side exceeds `maxDimension`, it's scaled to that first.
     static func png(from image: CGImage, maxBytes: Int = 3_750_000, maxDimension: Int = 8000) throws -> Data {
         var current = image
         let longSide = max(image.width, image.height)

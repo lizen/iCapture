@@ -1,5 +1,5 @@
-/// 모델 응답 첫 줄의 `<<KIND:…>>` 태그를 떼어 내고 본문만 돌려주는 스트리밍 파서.
-/// 조각이 올 때마다 누적 원문에서 본문을 다시 계산한다(화면 캡처 텍스트는 짧다).
+/// Streaming parser that strips the `<<KIND:…>>` tag from the first line of a model response and returns the body.
+/// Recomputes the body from the accumulated raw text on every chunk (screen capture text is short).
 struct KindTagParser {
     private static let tagOpen = "<<KIND:"
     private static let tagClose = ">>"
@@ -10,7 +10,7 @@ struct KindTagParser {
 
     init() {}
 
-    /// 새 조각을 붙이고 지금까지의 본문 전체를 돌려준다. `kind`는 확정된 첫 호출에서만 non-nil.
+    /// Appends a chunk and returns the whole body so far. `kind` is non-nil only on the first call that settles it.
     mutating func consume(_ delta: String) -> (kind: TextKind?, body: String) {
         buffer += delta
         guard let result = Self.split(buffer, final: false) else { return (nil, "") }
@@ -20,7 +20,7 @@ struct KindTagParser {
         return (result.kind, body)
     }
 
-    /// 응답이 끝난 뒤 최종 정리: 태그, 여는 펜스, 마지막 줄이 정확히 ```인 닫는 펜스를 지운다.
+    /// Final cleanup once the response ends: removes the tag, the opening fence, and a closing fence when the last line is exactly ```.
     static func parseComplete(_ raw: String) -> (kind: TextKind, body: String) {
         let result = split(raw, final: true) ?? (.other, raw)
         var body = dropOpeningFence(result.body)
@@ -33,7 +33,7 @@ struct KindTagParser {
         return (result.kind, body)
     }
 
-    /// 태그를 판정한다. nil이면 아직 태그인지 알 수 없어 보류.
+    /// Decides the tag. nil means it can't tell yet whether this is a tag, so output is held back.
     private static func split(_ raw: String, final: Bool) -> (kind: TextKind, body: String)? {
         guard raw.hasPrefix(tagOpen) else {
             if !final, tagOpen.hasPrefix(raw) { return nil }

@@ -4,7 +4,7 @@ import ImageIO
 import UniformTypeIdentifiers
 
 enum TestImages {
-    /// 압축이 거의 안 되는 랜덤 픽셀 이미지.
+    /// A random-pixel image that barely compresses.
     static func noise(width: Int, height: Int) -> CGImage {
         var state: UInt64 = 0x9E37_79B9_7F4A_7C15
         let bytesPerRow = width * 4
@@ -15,7 +15,7 @@ enum TestImages {
                 state ^= state << 13
                 state ^= state >> 7
                 state ^= state << 17
-                words[i] = UInt32(truncatingIfNeeded: state) | 0xFF00_0000  // 알파는 불투명으로 고정
+                words[i] = UInt32(truncatingIfNeeded: state) | 0xFF00_0000  // alpha fixed to opaque
             }
         }
         return image(pixels: &pixels, width: width, height: height)
@@ -26,7 +26,7 @@ enum TestImages {
         return image(pixels: &pixels, width: width, height: height)
     }
 
-    /// 흰 바탕에 검은 고정폭 글자를 그린 PNG(2배 해상도, 여백 넉넉). OCR 테스트 입력용.
+    /// A PNG of black monospaced text on white (2x resolution, generous padding). Input for OCR tests.
     static func text(_ string: String, pointSize: CGFloat) -> Data {
         let font = NSFont.monospacedSystemFont(ofSize: pointSize, weight: .regular)
         let attributed = NSAttributedString(string: string, attributes: [.font: font, .foregroundColor: NSColor.black])

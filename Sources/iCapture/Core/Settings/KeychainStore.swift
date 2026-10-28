@@ -5,7 +5,7 @@ enum KeychainError: Error, Equatable {
     case unexpectedStatus(OSStatus)
 }
 
-/// 일반 암호 항목(`kSecClassGenericPassword`)을 서비스 + 계정으로 읽고 쓴다.
+/// Reads and writes generic password items (`kSecClassGenericPassword`) by service and account.
 struct KeychainStore: Sendable {
     static let claudeAccount = "claude-api-key"
     static let llmAccount = "nativ-api-key"
@@ -26,7 +26,7 @@ struct KeychainStore: Sendable {
         return String(data: data, encoding: .utf8)
     }
 
-    /// nil 또는 빈 문자열이면 항목을 지운다(없는 항목을 지워도 오류가 아니다).
+    /// nil or an empty string deletes the item (deleting a missing item isn't an error).
     func write(_ value: String?, account: String) throws {
         let query = baseQuery(account: account)
         guard let value, !value.isEmpty else {

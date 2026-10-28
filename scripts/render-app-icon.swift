@@ -1,5 +1,5 @@
-// Design/AppIcon.svg를 앱 아이콘 PNG들로 그린다. 저장소 루트에서 실행: swift scripts/render-app-icon.swift
-// 결과: Resources/Assets.xcassets/AppIcon.appiconset/*.png + Contents.json
+// Renders Design/AppIcon.svg into the app icon PNGs. Run from the repository root: swift scripts/render-app-icon.swift
+// Output: Resources/Assets.xcassets/AppIcon.appiconset/*.png + Contents.json
 import AppKit
 
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
@@ -11,7 +11,7 @@ guard let svg = NSImage(contentsOf: svgURL) else {
     exit(1)
 }
 
-/// `pixels` 크기의 정사각 PNG. macOS 아이콘처럼 아래로 떨어지는 그림자를 덧붙인다(1024 기준 y 14, 흐림 32).
+/// A square PNG of `pixels` size, with a macOS-style drop shadow (y 14, blur 32 at 1024).
 func render(pixels: Int) -> Data {
     let scale = CGFloat(pixels) / 1024
     let space = CGColorSpace(name: CGColorSpace.sRGB)!
@@ -28,7 +28,7 @@ func render(pixels: Int) -> Data {
     return rep.representation(using: .png, properties: [:])!
 }
 
-// macOS 앱 아이콘이 요구하는 크기: 16·32·128·256·512 pt의 1x·2x.
+// Sizes a macOS app icon needs: 1x and 2x of 16, 32, 128, 256 and 512 pt.
 let entries: [(points: Int, scale: Int)] = [(16, 1), (16, 2), (32, 1), (32, 2), (128, 1), (128, 2), (256, 1), (256, 2), (512, 1), (512, 2)]
 try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
 var images: [[String: String]] = []

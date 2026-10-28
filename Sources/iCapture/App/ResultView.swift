@@ -1,10 +1,10 @@
 import AppKit
 import SwiftUI
 
-/// 왼쪽 캡처 이미지, 오른쪽 도구 막대 / 텍스트 / 상태 줄. 진행 중에는 맨 위에 얇은 진행 막대가 흐른다.
+/// Capture on the left; toolbar / text / status line on the right. A thin progress bar runs along the top while working.
 struct ResultView: View {
     @ObservedObject var model: ResultModel
-    /// 표시 개수("확인 필요 N곳")가 사용자 편집을 따라가도록 지켜본다.
+    /// Observed so the mark counts ("needs review N") follow user edits.
     @ObservedObject var text: RecognizedTextController
 
     private var phase: RecognitionPhase? { model.session?.phase }
@@ -68,7 +68,7 @@ struct ResultView: View {
                 .disabled(model.skipPressed)
             }
             if model.isRunning {
-                // esc는 ResultWindowController가 가로채 같은 취소로 보낸다.
+                // esc is intercepted by ResultWindowController and sent as the same cancel.
                 Button("취소") { model.onCancel?() }
             }
         }
@@ -104,12 +104,12 @@ struct ResultView: View {
     }
 }
 
-// MARK: - 상태 줄
+// MARK: - Status line
 
 private struct StatusLine: View {
     let session: RecognitionSession?
     let historyEngineName: String
-    /// 텍스트 영역의 지금 표시 개수. 세션의 값은 완료 시점에 고정이라 사용자가 고친 뒤를 반영하지 못한다.
+    /// Current mark counts of the text area. The session's values are fixed at completion and miss later user fixes.
     let marks: (confusion: Int, revision: Int)
     let now: Date
 
@@ -154,7 +154,7 @@ private struct StatusLine: View {
         }
     }
 
-    /// 진행 중일 때만 보인다.
+    /// Visible only while running.
     private var dots: String? {
         switch session?.phase {
         case .reading: "●○○"
@@ -165,9 +165,9 @@ private struct StatusLine: View {
     }
 }
 
-// MARK: - 진행 표시
+// MARK: - Progress indicator
 
-/// 창 맨 위 2pt 막대. 밝은 띠가 왼쪽에서 오른쪽으로 계속 흐른다.
+/// A 2pt bar along the top of the window. A bright band keeps sliding from left to right.
 private struct FlowingProgressBar: View {
     private let period: TimeInterval = 1.4
 
@@ -187,7 +187,7 @@ private struct FlowingProgressBar: View {
     }
 }
 
-/// `.reading` 동안 텍스트 자리에 보이는 반짝이는 자리표시줄 3개.
+/// Three shimmering placeholder lines shown in place of the text during `.reading`.
 private struct SkeletonLines: View {
     var body: some View {
         TimelineView(.animation) { context in
@@ -204,11 +204,11 @@ private struct SkeletonLines: View {
     }
 }
 
-// MARK: - 텍스트 영역
+// MARK: - Text area
 
-/// `RecognizedTextController.textView`를 스크롤 뷰에 넣어 보여 준다.
-/// `caretText`가 nil이 아니면(`.receiving`) 텍스트 끝에 깜빡이는 막대를 그린다.
-/// 이때 텍스트 뷰는 편집 잠금이라 시스템 커서가 보이지 않기 때문이다.
+/// Shows `RecognizedTextController.textView` inside a scroll view.
+/// When `caretText` is non-nil (`.receiving`), draws a blinking bar after the end of the text,
+/// because the text view is locked for editing then and the system caret isn't visible.
 private struct ResultTextArea: NSViewRepresentable {
     let textView: PlainTextView
     let caretText: String?
@@ -251,7 +251,7 @@ private struct ResultTextArea: NSViewRepresentable {
         caret.isHidden = false
     }
 
-    /// 마지막 글자 바로 뒤(텍스트가 줄바꿈으로 끝나면 다음 줄 처음)의 커서 자리.
+    /// The caret position right after the last character (the start of the next line if the text ends with a newline).
     private static func endOfTextRect(in textView: NSTextView) -> NSRect {
         guard let layoutManager = textView.layoutManager, let container = textView.textContainer else { return .zero }
         layoutManager.ensureLayout(for: container)
@@ -276,7 +276,7 @@ private struct ResultTextArea: NSViewRepresentable {
     }
 }
 
-/// 0.5초마다 깜빡이는 세로 막대.
+/// A vertical bar that blinks every 0.5 seconds.
 final class StreamingCaretView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)

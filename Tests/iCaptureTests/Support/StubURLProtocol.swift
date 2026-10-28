@@ -1,8 +1,8 @@
 import Foundation
 import os
 
-/// 네트워크 없이 `URLSession`에 미리 정한 응답을 돌려주는 프로토콜.
-/// 같은 테스트 클래스 안의 테스트는 순서대로 돌기 때문에 공유 상태 하나로 충분하다.
+/// A protocol that returns preset responses to `URLSession` without the network.
+/// Tests in one class run serially, so a single shared state is enough.
 final class StubURLProtocol: URLProtocol {
     private enum Canned {
         case response(status: Int, body: Data)

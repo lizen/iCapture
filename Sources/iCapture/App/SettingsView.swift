@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 기본 엔진, Claude API 키, 로컬 서버(Nativ·Ollama·vLLM) 주소·API 키, 캡처 단축키, 로그인할 때 자동 실행.
+/// Default engine, Claude API key, local server (Nativ, Ollama, vLLM) URL and API key, capture hotkey, launch at login.
 struct SettingsView: View {
     @ObservedObject var model: SettingsModel
     @ObservedObject var settings: AppSettings

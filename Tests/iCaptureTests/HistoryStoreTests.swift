@@ -28,7 +28,7 @@ final class HistoryStoreTests: XCTestCase {
         XCTAssertEqual(list.count, 10)
         XCTAssertEqual(list.first?.text, "t10")
         XCTAssertEqual(list.last?.text, "t1")
-        // 밀려난 항목의 폴더도 디스크에서 사라진다.
+        // The evicted entry's folder is removed from disk too.
         let folders = try FileManager.default.contentsOfDirectory(atPath: tmp.path)
         XCTAssertEqual(folders.count, 10)
     }
@@ -87,7 +87,7 @@ final class HistoryStoreTests: XCTestCase {
         try Data().write(to: tmp.appendingPathComponent(".DS_Store"))
         try FileManager.default.createDirectory(at: tmp.appendingPathComponent("notes"), withIntermediateDirectories: true)
         try FileManager.default.createDirectory(
-            at: tmp.appendingPathComponent(UUID().uuidString), withIntermediateDirectories: true) // entry.json 없음
+            at: tmp.appendingPathComponent(UUID().uuidString), withIntermediateDirectories: true) // no entry.json
         XCTAssertEqual(try store.entries().map(\.text), ["ok"])
     }
 
@@ -97,7 +97,7 @@ final class HistoryStoreTests: XCTestCase {
         let entries = (0..<3).map { HistoryEntry.fixture(text: "t\($0)", at: same) }
         for e in entries { try store.add(e, png: Data([0])) }
         let kept = Set(try store.entries().map(\.id))
-        // 같은 시각이면 폴더 이름(uuid 문자열)이 작은 쪽부터 먼저 지운다.
+        // With equal timestamps, the smaller folder name (UUID string) is deleted first.
         let evicted = entries.min { $0.id.uuidString < $1.id.uuidString }!
         XCTAssertEqual(kept.count, 2)
         XCTAssertFalse(kept.contains(evicted.id))

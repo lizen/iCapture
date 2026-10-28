@@ -1,7 +1,7 @@
 import AppKit
 import Carbon.HIToolbox
 
-/// 전역 단축키 하나를 나타낸다. `carbonModifiers`는 Carbon 비트마스크(`cmdKey` 등)다.
+/// One global hotkey. `carbonModifiers` is a Carbon bitmask (`cmdKey` etc.).
 struct HotKeyCombo: Codable, Equatable, Sendable {
     var keyCode: UInt32
     var carbonModifiers: UInt32
@@ -13,7 +13,7 @@ struct HotKeyCombo: Codable, Equatable, Sendable {
         self.carbonModifiers = carbonModifiers
     }
 
-    /// ⌘·⌃·⌥ 중 하나도 눌려 있지 않으면(⇧만으로는 부족) nil.
+    /// nil unless at least one of ⌘, ⌃ or ⌥ is held (⇧ alone isn't enough).
     init?(event: NSEvent) {
         let flags = event.modifierFlags
         var mods: UInt32 = 0
@@ -25,7 +25,7 @@ struct HotKeyCombo: Codable, Equatable, Sendable {
         self.init(keyCode: UInt32(event.keyCode), carbonModifiers: mods)
     }
 
-    /// 애플 표기 순서(⌃⌥⇧⌘) + 키 글자. 기본값은 "⇧⌘2".
+    /// Modifiers in Apple's order (⌃⌥⇧⌘) plus the key label. The default is "⇧⌘2".
     var displayString: String {
         var s = ""
         if carbonModifiers & UInt32(controlKey) != 0 { s += "⌃" }
@@ -35,7 +35,7 @@ struct HotKeyCombo: Codable, Equatable, Sendable {
         return s + (Self.keyLabels[keyCode] ?? "Key \(keyCode)")
     }
 
-    /// `NSMenuItem`용. 글자가 없는 키(F키, Space 등)는 key가 빈 문자열이다.
+    /// For `NSMenuItem`. Keys without a character (F-keys, Space, etc.) get an empty key string.
     var menuKeyEquivalent: (key: String, modifiers: NSEvent.ModifierFlags) {
         var flags: NSEvent.ModifierFlags = []
         if carbonModifiers & UInt32(cmdKey) != 0 { flags.insert(.command) }
@@ -45,7 +45,7 @@ struct HotKeyCombo: Codable, Equatable, Sendable {
         return (Self.characters[keyCode] ?? "", flags)
     }
 
-    /// 글자로 표현되는 키(영문·숫자·기호). 값은 소문자/기호 그대로.
+    /// Keys that map to a character (letters, digits, symbols). Values are lowercase letters or the symbol itself.
     private static let characters: [UInt32: String] = {
         let table: [(Int, String)] = [
             (kVK_ANSI_A, "a"), (kVK_ANSI_B, "b"), (kVK_ANSI_C, "c"), (kVK_ANSI_D, "d"),

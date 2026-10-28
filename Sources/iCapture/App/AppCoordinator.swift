@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 
-/// 단축키 → 영역 선택 → 캡처 → 인식 세션 → 결과 창 → 이력을 잇는다.
+/// Wires hotkey -> region selection -> capture -> recognition session -> result window -> history.
 @MainActor
 final class AppCoordinator: NSObject {
     private let settings: AppSettings
@@ -17,7 +17,7 @@ final class AppCoordinator: NSObject {
 
     private var session: RecognitionSession?
     private var sessionBindings: Set<AnyCancellable> = []
-    /// 결과 창에 떠 있는 이력 항목과 그 PNG. "다시 인식"과 편집 저장이 이 항목을 덮어쓴다.
+    /// The history entry shown in the result window and its PNG. "Recognize Again" and edit saves overwrite this entry.
     private var currentEntry: HistoryEntry?
     private var currentPNG: Data?
     private var isCapturing = false
@@ -63,7 +63,7 @@ final class AppCoordinator: NSObject {
         isCapturing = true
         Task {
             defer { isCapturing = false }
-            // esc로 선택을 접으면 돌고 있던 인식을 그대로 둔다. 영역을 고른 뒤에야 앞 세션을 끝낸다.
+            // Dismissing the selection with esc leaves a running recognition alone. The previous session ends only after a region is chosen.
             guard let selection = await overlay.selectRegion() else { return }
             finishCurrentSession()
             do {
@@ -77,18 +77,18 @@ final class AppCoordinator: NSObject {
         }
     }
 
-    /// 앱이 끝나기 직전에 부른다. 미뤄 둔 편집을 저장하고, 돌고 있는 세션은 취소해 받은 만큼을 이력에 남기고
-    /// (텍스트 없이 취소되면 이전 결과를 지킨다), 설정 창에 입력 중인 키를 확정한다.
+    /// Called right before the app quits. Saves any pending edit, cancels a running session so what was received is kept in history
+    /// (a cancel with no text keeps the previous result), and commits keys being typed in the settings window.
     func prepareForTermination() {
         finishCurrentSession()
         settingsWindow.commitPending()
     }
 
-    /// 이력 항목을 세션 없이 결과 창에 다시 연다. 텍스트는 바로 편집할 수 있다.
+    /// Reopens a history entry in the result window without a session. The text is immediately editable.
     func reopen(_ entry: HistoryEntry) {
         finishCurrentSession()
         detachSession()
-        // 메뉴의 항목은 마지막 저장 때의 사본이다. 지금 창에 떠 있는 같은 항목이면 그 최신본을 쓴다.
+        // Menu items are copies from the last save. If the same entry is open in the window, use that newer copy.
         let entry = currentEntry?.id == entry.id ? currentEntry ?? entry : entry
 
         let imageURL = history.imageURL(for: entry.id)
@@ -97,7 +97,7 @@ final class AppCoordinator: NSObject {
 
         let text = resultWindow.textController
         text.setMarks(confusion: [], revision: [])
-        // 다른 캡처의 텍스트로 돌아가는 undo가 남지 않게 먼저 비운다.
+        // Clear first so no undo step leads back to another capture's text.
         text.setStreamingText("")
         text.beginReplacement()
         text.setStreamingText(entry.text)
@@ -113,14 +113,14 @@ final class AppCoordinator: NSObject {
         showResultWindow()
     }
 
-    /// 같은 PNG로 새 세션을 돌려 같은 이력 항목을 덮어쓴다. `settings.engine`은 바꾸지 않는다.
+    /// Runs a new session on the same PNG and overwrites the same history entry. Does not change `settings.engine`.
     func recognizeAgain(with choice: EngineChoice) {
         guard let png = currentPNG, currentEntry != nil else { return }
         finishCurrentSession()
         startSession(png: png, choice: choice)
     }
 
-    /// 키는 매번 키체인에서 읽는다. 없거나 읽지 못하면 nil이고, 엔진이 `.missingAPIKey` 등으로 알린다.
+    /// Keys are read from the Keychain every time. Missing or unreadable keys are nil, and the engine reports `.missingAPIKey` or similar.
     func makeEngine(_ choice: EngineChoice) -> any RecognitionEngine {
         switch choice {
         case .claude(let model):
@@ -134,7 +134,7 @@ final class AppCoordinator: NSObject {
         }
     }
 
-    // MARK: - 캡처와 세션
+    // MARK: - Capture and session
 
     private func beginCapture(png: Data, image: NSImage) {
         let choice = settings.engine
@@ -152,7 +152,7 @@ final class AppCoordinator: NSObject {
         model.image = image
         model.canRecognizeAgain = true
         model.select(choice)
-        // 새 캡처는 앞 캡처의 텍스트로 돌아가는 undo를 남기지 않는다.
+        // A new capture leaves no undo step back to the previous capture's text.
         resultWindow.textController.setStreamingText("")
         showResultWindow()
         startSession(png: png, choice: choice)
@@ -173,8 +173,8 @@ final class AppCoordinator: NSObject {
         session.start()
     }
 
-    /// `@Published`는 값이 바뀌기 직전(willSet)에 알린다. 그래서 세션의 속성 대신 받은 값을 쓴다.
-    /// 세션은 text·표시를 먼저 정하고 phase를 마지막에 바꾸므로, phase 알림 때 나머지 값은 이미 최종값이다.
+    /// `@Published` fires before the value changes (willSet), so use the received value rather than the session's property.
+    /// The session sets text and marks before changing phase last, so the other values are final when phase fires.
     private func bind(_ session: RecognitionSession, entryID: UUID?) {
         let text = resultWindow.textController
         session.$text
@@ -200,7 +200,7 @@ final class AppCoordinator: NSObject {
             break
         }
 
-        // 계약: 끝나는 모든 경로에서 endReplacement를 불러야 undo가 다시 풀린다.
+        // Contract: every terminal path must call endReplacement, or undo stays blocked.
         text.endReplacement()
         if phase == .done {
             text.setMarks(confusion: session.confusionMarks, revision: session.revisionMarks)
@@ -224,8 +224,8 @@ final class AppCoordinator: NSObject {
         }
     }
 
-    /// 돌고 있는 세션을 취소하고(취소 처리에서 이력이 저장된다) 미뤄 둔 편집 저장을 바로 한다.
-    /// 세션이 소멸할 때 스스로 취소하지 않으므로, 바꾸거나 창을 닫기 전에 반드시 이걸 거친다.
+    /// Cancels the running session (its cancel handling saves history) and flushes any pending edit save right away.
+    /// Sessions don't cancel themselves on deinit, so always go through this before replacing one or closing the window.
     private func finishCurrentSession() {
         session?.cancel()
         flushPendingEditSave()
@@ -238,7 +238,7 @@ final class AppCoordinator: NSObject {
         resultWindow.model.setSession(nil)
     }
 
-    // MARK: - 편집 저장
+    // MARK: - Edit saving
 
     private func userEdited(_ text: String) {
         guard var entry = currentEntry else { return }
@@ -273,13 +273,13 @@ final class AppCoordinator: NSObject {
         refreshRecentEntries()
     }
 
-    /// 이력을 쓴 뒤마다 부른다. 메뉴의 최근 목록과 (떠 있으면) 이력 창을 다시 읽힌다.
+    /// Called after every history write. Reloads the menu's recent list and, if open, the history window.
     private func refreshRecentEntries() {
         statusMenu?.recentEntries = (try? history.entries()) ?? []
         historyWindow.reloadIfVisible()
     }
 
-    /// 지운 항목은 다시 저장하지 않는다. 결과 창의 텍스트는 남지만 이력과는 끊긴다.
+    /// A cleared entry is never saved again. The result window keeps its text but is detached from history.
     private func clearHistory() {
         cancelPendingEditSave()
         currentEntry = nil
@@ -293,7 +293,7 @@ final class AppCoordinator: NSObject {
         refreshRecentEntries()
     }
 
-    // MARK: - 결과 창
+    // MARK: - Result window
 
     private func wireResultWindow() {
         let model = resultWindow.model
@@ -314,7 +314,7 @@ final class AppCoordinator: NSObject {
         refreshLocalLLMModels()
     }
 
-    /// 창을 열 때마다 로컬 서버의 모델 목록을 다시 받는다. 실패하면 그 모델 항목 없이 둔다.
+    /// Refetches the local server's model list every time the window opens. On failure the model entries are left out.
     private func refreshLocalLLMModels() {
         llmModelsTask?.cancel()
         let baseURL = settings.baseLLMURL
@@ -330,14 +330,14 @@ final class AppCoordinator: NSObject {
         options.first { $0.displayName == name }
     }
 
-    // MARK: - 단축키·알림
+    // MARK: - Hotkey and alerts
 
     private func registerCaptureHotKey(_ combo: HotKeyCombo) throws {
         try hotKeyMonitor.register(combo) { [weak self] in self?.captureRegion() }
     }
 
-    /// 실행할 때와 설정 창의 녹화가 끝날 때 부른다. `settings.hotKey`는 등록에 성공한 조합만 갖는다.
-    /// 실패하면(`register`가 먼저 해제하므로 단축키가 없는 상태) 이전 조합을 다시 등록하고 알린다.
+    /// Called at launch and when settings recording ends. `settings.hotKey` only ever holds a combo that registered successfully.
+    /// On failure (`register` unregisters first, so no hotkey is left), re-registers the previous combo and shows an alert.
     private func applyHotKey(_ combo: HotKeyCombo) {
         let previous = settings.hotKey
         do {
@@ -380,12 +380,12 @@ final class AppCoordinator: NSObject {
         alert.addButton(withTitle: "취소")
         NSApp.activate()
         guard alert.runModal() == .alertFirstButtonReturn else { return }
-        // 처음이면 시스템 설정의 목록에 이 앱을 올려 둔다. 이미 물어본 적이 있으면 아무것도 띄우지 않는다.
+        // The first time, this adds the app to the list in System Settings. If we already asked, nothing is shown.
         _ = ScreenRecordingPermission.request()
         ScreenRecordingPermission.openSystemSettings()
     }
 
-    // MARK: - 이력·설정 창
+    // MARK: - History and settings windows
 
     private func wireHistoryWindow() {
         let model = historyWindow.model
@@ -394,7 +394,7 @@ final class AppCoordinator: NSObject {
     }
 
     private func wireSettingsWindow() {
-        // 녹화 중에는 전역 단축키를 내려서 지금 조합을 눌러도 캡처가 뜨지 않게 한다.
+        // Lower the global hotkey while recording so pressing the current combo doesn't start a capture.
         settingsWindow.onHotKeyRecordingStarted = { [weak self] in self?.hotKeyMonitor.unregister() }
         settingsWindow.onHotKeyRecordingEnded = { [weak self] combo in
             guard let self else { return }
@@ -410,9 +410,9 @@ final class AppCoordinator: NSObject {
         settingsWindow.show()
     }
 
-    // MARK: - 메인 메뉴
+    // MARK: - Main menu
 
-    /// LSUIElement 앱은 메뉴 막대가 보이지 않지만, 창 안의 ⌘C·⌘Z·⌘W 같은 단축키는 mainMenu에 항목이 있어야 동작한다.
+    /// LSUIElement apps show no menu bar, but in-window shortcuts like ⌘C, ⌘Z and ⌘W only work if mainMenu has the items.
     private func installMainMenu() {
         let mainMenu = NSMenu()
 
@@ -456,9 +456,9 @@ final class AppCoordinator: NSObject {
         menu.addItem(item)
     }
 
-    // MARK: - Vision 예열
+    // MARK: - Vision warm-up
 
-    /// Vision의 첫 요청은 모델을 올리느라 오래 걸린다. 첫 캡처가 늦지 않게 실행할 때 작은 이미지를 한 번 읽혀 둔다.
+    /// Vision's first request is slow while it loads its model. Read a tiny image at launch so the first capture isn't delayed.
     private func warmUpVision() {
         guard let png = Self.warmUpPNG() else { return }
         Task.detached(priority: .utility) {

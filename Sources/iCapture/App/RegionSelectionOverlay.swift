@@ -1,22 +1,22 @@
 import AppKit
 
-/// 마우스가 있는 화면 하나를 덮고, 드래그로 영역을 고르게 하는 오버레이.
+/// An overlay that covers the screen under the mouse and lets the user drag out a region.
 @MainActor
 final class RegionSelectionOverlay {
     private var panel: OverlayPanel?
     private var continuation: CheckedContinuation<CGRect?, Never>?
     private var observers: [NSObjectProtocol] = []
-    /// 오버레이를 띄우며 십자 커서를 올렸는지. 닫을 때 한 번만 내려 원래 커서로 돌린다.
+    /// Whether the crosshair cursor was pushed when the overlay appeared. Popped once on close to restore the previous cursor.
     private var pushedCursor = false
 
-    /// 반환하는 rect는 AppKit 전역 좌표(왼쪽 아래 원점, 포인트). esc나 너무 작은 영역이면 nil.
+    /// The returned rect is in AppKit global coordinates (bottom-left origin, points). nil on esc or a too-small region.
     func selectRegion() async -> (rect: CGRect, screen: NSScreen)? {
         guard continuation == nil else { return nil }
         guard let screen = NSScreen.screens.first(where: { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) })
             ?? NSScreen.main
         else { return nil }
 
-        // 선택 없이 끝나면 포커스를 돌려줄 앱. 영역을 고르면 결과 창이 iCapture를 활성화하므로 쓰지 않는다.
+        // The app to give focus back to when nothing is selected. Unused when a region is chosen, since the result window activates iCapture.
         let current = NSRunningApplication.current
         let previousApp = NSWorkspace.shared.frontmostApplication.flatMap { $0 == current ? nil : $0 }
 
@@ -27,11 +27,11 @@ final class RegionSelectionOverlay {
         dismiss()
 
         guard let localRect, !CaptureGeometry.isTooSmall(localRect) else {
-            // 다른 앱으로 옮겨 가서 취소됐으면(이미 iCapture가 비활성) 사용자가 고른 앱을 그대로 둔다.
+            // If cancelled because the user switched apps (iCapture is already inactive), leave the app they chose alone.
             if NSApp.isActive { previousApp?.activate() }
             return nil
         }
-        // 오버레이가 캡처 이미지에 찍히지 않도록 윈도우 서버가 화면을 갱신할 시간을 준다.
+        // Give the window server time to redraw so the overlay doesn't end up in the captured image.
         try? await Task.sleep(for: .milliseconds(50))
         return (localRect.offsetBy(dx: screen.frame.minX, dy: screen.frame.minY), screen)
     }
@@ -49,7 +49,7 @@ final class RegionSelectionOverlay {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.ignoresMouseEvents = false
-        // NSPanel은 기본값이 true라 앱이 비활성화되면 조용히 숨는다. 숨기지 않고 아래 관찰자로 취소한다.
+        // NSPanel defaults to true, so it silently hides when the app deactivates. Keep it visible and cancel via the observers below.
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
@@ -63,8 +63,8 @@ final class RegionSelectionOverlay {
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
         panel.makeFirstResponder(view)
-        // 커서 영역(cursor rect)은 앱이 활성화된 뒤 마우스가 움직여야 적용된다. 메뉴 막대 앱은 바로 활성화되지 않을 때가 있어서
-        // 오버레이가 뜨는 순간 십자 커서를 직접 올린다. 이후로는 SelectionView의 추적 영역이 계속 십자로 맞춘다.
+        // Cursor rects only apply once the app is active and the mouse moves. Menu bar apps aren't always activated right away,
+        // so push the crosshair the moment the overlay appears. After that, SelectionView's tracking area keeps it a crosshair.
         NSCursor.crosshair.push()
         pushedCursor = true
     }
@@ -75,7 +75,7 @@ final class RegionSelectionOverlay {
         continuation.resume(returning: rect)
     }
 
-    /// 앱이 비활성화되거나 패널이 key를 잃으면 선택을 취소한다. 그렇지 않으면 continuation이 영영 resume되지 않는다.
+    /// Cancels the selection when the app deactivates or the panel loses key. Otherwise the continuation would never resume.
     private func observeDeactivation(of panel: NSPanel) {
         let center = NotificationCenter.default
         let cancel: @Sendable (Notification) -> Void = { [weak self] _ in
@@ -96,19 +96,19 @@ final class RegionSelectionOverlay {
             NSCursor.pop()
             pushedCursor = false
         }
-        // 오버레이가 사라진 뒤 아래 창이 커서를 다시 정하기 전까지 기본 화살표로 둔다.
+        // Use the default arrow until the window underneath sets the cursor again after the overlay disappears.
         NSCursor.arrow.set()
     }
 }
 
-/// 테두리 없는 창은 기본적으로 key가 될 수 없어서 esc를 받으려면 따로 허용해야 한다.
+/// Borderless windows can't become key by default, so allow it explicitly to receive esc.
 private final class OverlayPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 }
 
 private final class SelectionView: NSView {
-    /// 뷰 좌표(왼쪽 아래 원점)의 선택 영역. 취소면 nil.
+    /// The selected region in view coordinates (bottom-left origin). nil when cancelled.
     var onFinish: ((CGRect?) -> Void)?
 
     private var startPoint: NSPoint?
@@ -121,7 +121,7 @@ private final class SelectionView: NSView {
         addCursorRect(bounds, cursor: .crosshair)
     }
 
-    /// 앱이 활성 상태가 아니어도(`.activeAlways`) 마우스가 오버레이 위에 있으면 십자 커서를 유지한다.
+    /// Keeps the crosshair while the mouse is over the overlay, even when the app isn't active (`.activeAlways`).
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         trackingAreas.forEach(removeTrackingArea)
@@ -141,7 +141,7 @@ private final class SelectionView: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        // 선택 영역 바깥만 어둡게 칠한다. 안쪽은 거의 투명하게 두되, 완전 투명이면 클릭이 뒤로 새서 알파를 살짝 남긴다.
+        // Dim only outside the selection. The inside stays almost transparent; fully transparent would let clicks fall through, so keep a little alpha.
         let dim = NSBezierPath(rect: bounds)
         if let selection {
             dim.append(NSBezierPath(rect: selection))

@@ -1,8 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// 왼쪽: 검색 칸 / 이력 목록 / "이력 비우기". 오른쪽: 고른 항목의 이미지와 텍스트(읽기 전용)와 "결과 창에서 열기".
-/// 편집은 결과 창에서 한다(스펙 5.3의 빌더 재량).
+/// Left: search field / history list / "Clear History". Right: the selected entry's image and read-only text, and "Open in Result Window".
+/// Editing happens in the result window (a builder's call per spec 5.3).
 struct HistoryView: View {
     @ObservedObject var model: HistoryModel
     let onClear: () -> Void
@@ -17,7 +17,7 @@ struct HistoryView: View {
         .frame(minWidth: 640, minHeight: 360)
     }
 
-    // MARK: - 왼쪽
+    // MARK: - Left
 
     private var sidebar: some View {
         VStack(spacing: 0) {
@@ -49,7 +49,7 @@ struct HistoryView: View {
         }
     }
 
-    // MARK: - 오른쪽
+    // MARK: - Right
 
     @ViewBuilder
     private var detail: some View {
@@ -96,7 +96,7 @@ struct HistoryView: View {
     }
 }
 
-/// 배지(`kind.badge`) · 첫 줄 · 캡처 시각.
+/// Badge (`kind.badge`) · first line · capture time.
 private struct HistoryRow: View {
     let entry: HistoryEntry
 

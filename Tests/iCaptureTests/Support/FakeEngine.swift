@@ -1,8 +1,8 @@
 import Foundation
 import XCTest
 
-/// 정해 둔 이벤트를 차례로 내보내고, `thenThrow`가 있으면 그 오류로 끝나는 가짜 엔진.
-/// `gate`가 있으면 이벤트를 하나 내기 전마다 `gate.wait()`로 멈춰서 테스트가 한 단계씩 풀어 준다.
+/// A fake engine that emits preset events in order and, with `thenThrow`, ends with that error.
+/// With `gate`, it pauses on `gate.wait()` before each event so the test can release it step by step.
 struct FakeEngine: RecognitionEngine {
     let choice: EngineChoice = .claude(.sonnet)
     private let events: [RecognitionEvent]
@@ -32,7 +32,7 @@ struct FakeEngine: RecognitionEngine {
     }
 }
 
-/// `open()` 한 번이 `wait()` 한 번을 통과시킨다. 기다리는 쪽이 없으면 통과권을 쌓아 둔다.
+/// Each `open()` lets one `wait()` through. Without a waiter, the pass is banked.
 actor TestGate {
     private var permits = 0
     private var waiters: [CheckedContinuation<Void, Never>] = []
@@ -67,12 +67,12 @@ struct FakeOCR: OCRProvider {
 }
 
 extension RecognitionSession {
-    /// `.done` / `.failed` / `.cancelled`가 될 때까지 기다린다. 5초 안에 안 되면 테스트를 실패시킨다.
+    /// Waits until `.done`, `.failed` or `.cancelled`. Fails the test if that doesn't happen within 5 seconds.
     func waitUntilFinished(file: StaticString = #filePath, line: UInt = #line) async {
         await waitFor("끝 상태", file: file, line: line) { $0.isEditable }
     }
 
-    /// `phase`가 주어진 값이 될 때까지 기다린다. 5초 안에 안 되면 테스트를 실패시킨다.
+    /// Waits until `phase` equals the given value. Fails the test if that doesn't happen within 5 seconds.
     func waitUntil(_ phase: RecognitionPhase, file: StaticString = #filePath, line: UInt = #line) async {
         await waitFor("\(phase)", file: file, line: line) { $0.phase == phase }
     }

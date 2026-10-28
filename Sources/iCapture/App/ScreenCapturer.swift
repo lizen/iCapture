@@ -7,7 +7,7 @@ enum CaptureError: Error {
 
 @MainActor
 struct ScreenCapturer {
-    /// `rect`는 AppKit 전역 좌표(왼쪽 아래 원점, 포인트). 결과는 Retina 해상도의 CGImage다.
+    /// `rect` is in AppKit global coordinates (bottom-left origin, points). The result is a CGImage at Retina resolution.
     func capture(rect: CGRect, on screen: NSScreen) async throws -> CGImage {
         guard let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
             throw CaptureError.displayNotFound

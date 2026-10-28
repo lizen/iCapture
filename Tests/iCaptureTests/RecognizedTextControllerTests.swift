@@ -25,13 +25,13 @@ final class RecognizedTextControllerTests: XCTestCase {
         let c = RecognizedTextController(); c.beginReplacement(); c.setStreamingText("SELECT 1"); c.endReplacement()
         c.setMarks(confusion: [NSRange(location: 7, length: 1)], revision: [])
         c.copyAll(to: pb)
-        // `pb.types`에는 시스템이 붙이는 옛 별칭(NSStringPboardType)이 늘 함께 나오므로 항목의 형식을 본다.
+        // `pb.types` always includes the legacy alias the system adds (NSStringPboardType), so check the item's types instead.
         XCTAssertEqual(pb.pasteboardItems?.count, 1)
         XCTAssertEqual(pb.pasteboardItems?.first?.types, [.string])
         XCTAssertEqual(pb.string(forType: .string), "SELECT 1")
     }
 
-    /// 드래그로 고른 뒤 ⌘C(`copy:`)가 쓰는 경로. 고른 부분만, 서식 없는 텍스트로 들어가야 한다.
+    /// The path ⌘C (`copy:`) takes after a mouse selection. Only the selected part, as plain text, must be copied.
     func testSelectionCopyWritesSelectedPlainText() {
         let pb = NSPasteboard(name: .init("icapture.tests.\(UUID())"))
         defer { pb.releaseGlobally() }
@@ -46,7 +46,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertNil(pb.data(forType: .rtfd))
     }
 
-    /// ⌘V(`paste:`)가 쓰는 경로. 다른 앱에서 복사한 서식 있는 글도 글자만 들어와야 한다.
+    /// The path ⌘V (`paste:`) takes. Styled text copied from another app must arrive as characters only.
     func testPasteReadsPlainText() {
         let pb = NSPasteboard(name: .init("icapture.tests.\(UUID())"))
         defer { pb.releaseGlobally() }
@@ -76,7 +76,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(edits, ["WHERE u.Level = 1"])
     }
 
-    /// 결과 창의 "확인 필요 N곳"이 사용자 편집을 따라가도록 표시가 바뀌면 알린다. 표시와 상관없는 타이핑은 알리지 않는다.
+    /// Mark changes are published so the result window's "needs review N" follows user edits. Typing unrelated to marks publishes nothing.
     func testMarkChangesArePublished() {
         let c = RecognizedTextController()
         c.beginReplacement(); c.setStreamingText("WHERE u.level = 1"); c.endReplacement()
@@ -142,7 +142,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(c.confusionMarks, []); XCTAssertEqual(c.revisionMarks, [])
     }
 
-    // MARK: - 실제 입력 경로(타이핑·IME)
+    // MARK: - Real input paths (typing, IME)
 
     private let paragraphText = "ab cdefgh ijk\nline2 x"
     private let paragraphMarks = [NSRange(location: 5, length: 1), NSRange(location: 11, length: 1), NSRange(location: 20, length: 1)]
@@ -174,7 +174,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(c.confusionMarks, shiftedMarks)
     }
 
-    // MARK: - 창 안의 undo:/redo:
+    // MARK: - undo:/redo: inside a window
 
     func testWindowUndoRedoActionsReachTextViewUndoManager() {
         let c = RecognizedTextController()
@@ -195,7 +195,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertEqual(c.string, "u.level")
     }
 
-    // MARK: - 남은 타이핑 undo
+    // MARK: - Leftover typing undo
 
     func testRerecognitionAfterDeletingEverythingClearsHistory() {
         let c = recognized("hello")
@@ -228,7 +228,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         XCTAssertTrue(c.textView.validateMenuItem(NSMenuItem(title: "", action: Selector(("undo:")), keyEquivalent: "")))
     }
 
-    // MARK: - 재인식 undo/redo 알림, 연속 begin
+    // MARK: - Re-recognition undo/redo notifications, repeated begin
 
     func testRecognitionUndoRedoCallsOnUserEdit() {
         let c = recognized("u.1evel")
@@ -254,7 +254,7 @@ final class RecognizedTextControllerTests: XCTestCase {
         return c
     }
 
-    /// 실제 타이핑과 같은 경로로 사용자 편집을 흉내 낸다.
+    /// Simulates a user edit through the same path as real typing.
     private func userReplace(_ c: RecognizedTextController, _ range: NSRange, with text: String) {
         let tv = c.textView
         XCTAssertTrue(tv.shouldChangeText(in: range, replacementString: text))

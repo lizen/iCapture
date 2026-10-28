@@ -1,9 +1,9 @@
 #!/bin/bash
-# 내 맥이나 직접 옮겨 쓰는 용도의 DMG를 만든다(공증 없음).
-# Release로 빌드하고, iCapture.app과 Applications 바로가기를 담아 build/iCapture-<버전>.dmg로 묶는다.
-# 서명은 Configuration/Signing.xcconfig의 Apple Development 인증서를 그대로 쓴다.
-# 다른 사람에게 배포하려면 Developer ID 서명과 공증(notarytool)이 따로 필요하다.
-# 사용: make dmg   (저장소 루트에서 실행. xcodegen generate는 make가 먼저 돌린다)
+# Builds a DMG for your own Macs (not notarized).
+# Builds Release and packages iCapture.app with an Applications shortcut as build/iCapture-<version>.dmg.
+# Signs with the Apple Development certificate from Configuration/Signing.xcconfig as is.
+# Distributing to other people additionally requires Developer ID signing and notarization (notarytool).
+# Usage: make dmg   (run from the repository root; make runs xcodegen generate first)
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ xcodebuild -project iCapture.xcodeproj -scheme iCapture -configuration Release \
     -destination 'generic/platform=macOS' -derivedDataPath "$derived_data" build -quiet
 [[ -d "$app" ]] || fail "빌드된 앱이 없어요: $app"
 
-# 서명이 깨진 앱을 묶지 않게 먼저 확인한다.
+# Verify first so a broken signature never gets packaged.
 codesign --verify --deep --strict "$app" || fail "앱 서명을 확인하지 못했어요: $app"
 authority="$(codesign -dvv "$app" 2>&1 | sed -n 's/^Authority=//p' | head -n 1)"
 

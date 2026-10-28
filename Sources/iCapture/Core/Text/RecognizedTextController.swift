@@ -1,19 +1,19 @@
 import AppKit
 import Combine
 
-/// 서식 없는 일반 텍스트만 주고받는 텍스트 뷰. 창이 없어도(테스트) 쓸 수 있게 undo 관리자를 직접 가진다.
+/// A text view that only exchanges plain text. Owns its undo manager so it works without a window (tests).
 final class PlainTextView: NSTextView {
     private let ownUndoManager = UndoManager()
-    /// true인 동안(재인식 스트리밍 중)은 undo/redo를 막는다.
+    /// While true (during re-recognition streaming), undo/redo are blocked.
     var isUndoBlocked = false
 
     override var undoManager: UndoManager? { ownUndoManager }
-    // 쓰기 형식은 바꾸지 않는다. `isRichText = false`면 기본값이 이미 서식 없는 텍스트(NSStringPboardType) 하나뿐이고,
-    // `.string`으로 덮어쓰면 `writeSelection(to:type:)`가 그 형식을 몰라 ⌘C가 아무것도 복사하지 못한다.
+    // Leave the writable types alone. With `isRichText = false` the default is already plain text only (NSStringPboardType);
+    // overriding it with `.string` makes `writeSelection(to:type:)` reject the type, so ⌘C copies nothing.
     override var readablePasteboardTypes: [NSPasteboard.PasteboardType] { [.string] }
 
-    // 창 안의 ⌘Z/⌘⇧Z(`undo:`/`redo:`)는 그냥 두면 응답자 체인을 따라 NSWindow의 undo 관리자로 간다.
-    // 여기서 받아 이 뷰의 undo 관리자로 보낸다.
+    // Left alone, ⌘Z/⌘⇧Z (`undo:`/`redo:`) in a window travel up the responder chain to NSWindow's undo manager.
+    // Catch them here and send them to this view's undo manager.
     @objc func undo(_ sender: Any?) {
         if !isUndoBlocked { ownUndoManager.undo() }
     }
@@ -39,19 +39,19 @@ final class PlainTextView: NSTextView {
     }
 }
 
-/// 인식 결과를 보여 주는 텍스트 영역. 스트리밍으로 텍스트를 받고, 재인식 한 번을 undo 한 단계로 묶고,
-/// 노랑(헷갈리는 글자)·초록(고친 곳) 표시를 화면 전용 임시 속성으로 칠한다.
-/// 표시가 바뀌면 알려서 결과 창의 "확인 필요 N곳"이 사용자 편집을 따라가게 한다.
+/// Text area showing the recognition result. Receives streamed text, groups one re-recognition into a single undo step,
+/// and paints yellow (look-alike) and green (revised) marks as display-only temporary attributes.
+/// Publishes mark changes so the result window's "needs review N" follows user edits.
 @MainActor final class RecognizedTextController: NSObject, ObservableObject, @MainActor NSTextStorageDelegate {
     let textView: PlainTextView
-    /// 사용자가 직접 고쳤을 때, 그리고 재인식 undo/redo로 텍스트가 바뀌었을 때 불린다. 스트리밍 갱신에서는 불리지 않는다.
+    /// Called when the user edits the text and when a re-recognition undo/redo changes it. Not called for streaming updates.
     var onUserEdit: ((String) -> Void)?
     @Published private(set) var confusionMarks: [NSRange] = []
     @Published private(set) var revisionMarks: [NSRange] = []
 
-    /// 스트리밍 갱신이나 undo 재생 중이면 true. 이때의 텍스트 변경은 사용자 편집으로 보지 않는다.
+    /// true during streaming updates or undo replay. Text changes then aren't treated as user edits.
     private var isReplacingProgrammatically = false
-    /// 사용자 편집으로 표시 범위를 고쳤고, 아직 다시 칠하지 않았으면 true.
+    /// true when a user edit adjusted the mark ranges and they haven't been repainted yet.
     private var hasPendingUserEdit = false
     private var isInReplacement = false
     private var savedText = ""
@@ -87,8 +87,8 @@ final class PlainTextView: NSTextView {
             self, selector: #selector(textDidChange(_:)), name: NSText.didChangeNotification, object: textView)
     }
 
-    /// 재인식을 시작한다. 지금 텍스트를 보관하고, `endReplacement()`까지 undo/redo를 막는다.
-    /// 계약: 시작했으면 끝나는 모든 경로(완료·취소·오류)에서 반드시 `endReplacement()`를 불러야 한다.
+    /// Starts a re-recognition. Saves the current text and blocks undo/redo until `endReplacement()`.
+    /// Contract: once started, every terminal path (done, cancelled, failed) must call `endReplacement()`.
     func beginReplacement() {
         guard !isInReplacement else { return }
         isInReplacement = true
@@ -97,16 +97,16 @@ final class PlainTextView: NSTextView {
         textView.breakUndoCoalescing()
     }
 
-    /// 텍스트를 통째로 바꾸고 커서를 끝으로 옮긴다.
+    /// Replaces the whole text and moves the cursor to the end.
     func setStreamingText(_ text: String) {
         replaceAll(with: text)
-        // swap 한 단계로 대체되지 않을 변경이면, 남은 타이핑 undo가 새 텍스트에 엉뚱하게 적용되지 않게 기록을 비운다.
+        // If this change won't be replaced by a single swap step, clear the history so leftover typing undo can't apply to the new text.
         if !isInReplacement || savedText.isEmpty {
             textView.undoManager?.removeAllActions()
         }
     }
 
-    /// 재인식을 끝낸다. 보관한 텍스트가 있고 지금과 다르면, 둘을 맞바꾸는 undo 한 단계를 등록한다.
+    /// Ends a re-recognition. If there's saved text that differs from the current text, registers one undo step that swaps them.
     func endReplacement() {
         guard isInReplacement else { return }
         isInReplacement = false
@@ -130,14 +130,14 @@ final class PlainTextView: NSTextView {
 
     // MARK: - NSTextStorageDelegate
 
-    /// 편집 범위는 `willProcessEditing`에서 받는다. `didProcessEditing` 때는 속성 정리(fixAttributes) 때문에
-    /// 범위가 문단 끝까지 넓어져 있어서, 타이핑 한 글자에 같은 문단의 뒤쪽 표시가 모두 지워진다.
+    /// The edited range is taken in `willProcessEditing`. By `didProcessEditing`, attribute fixing (fixAttributes) has
+    /// widened it to the end of the paragraph, so typing one character would clear every later mark in that paragraph.
     func textStorage(
         _ textStorage: NSTextStorage, willProcessEditing editedMask: NSTextStorageEditActions,
         range editedRange: NSRange, changeInLength delta: Int
     ) {
         guard editedMask.contains(.editedCharacters), !isReplacingProgrammatically else { return }
-        // 바뀔 때만 넣는다. 그대로 넣으면 표시와 상관없는 타이핑마다 결과 창이 다시 그려진다.
+        // Assign only on change. Assigning unconditionally would redraw the result window on every keystroke unrelated to marks.
         let confusion = MarkRanges.adjust(confusionMarks, editedRange: editedRange, changeInLength: delta)
         if confusion != confusionMarks { confusionMarks = confusion }
         let revision = MarkRanges.adjust(revisionMarks, editedRange: editedRange, changeInLength: delta)
@@ -145,8 +145,8 @@ final class PlainTextView: NSTextView {
         hasPendingUserEdit = true
     }
 
-    /// 레이아웃 관리자는 대리자 호출이 끝난 뒤에야 편집을 반영하며 임시 속성을 `changeInLength`만큼 민다.
-    /// 그래서 다시 칠하기는 편집이 모두 끝난 뒤(`didChangeText`)에 한다.
+    /// The layout manager applies the edit only after the delegate call returns, shifting temporary attributes by `changeInLength`.
+    /// So repainting happens after the whole edit is done (`didChangeText`).
     @objc private func textDidChange(_ notification: Notification) {
         guard hasPendingUserEdit else { return }
         hasPendingUserEdit = false
@@ -156,7 +156,7 @@ final class PlainTextView: NSTextView {
 
     // MARK: - Private
 
-    /// 텍스트를 통째로 바꾸고 커서를 끝으로 옮긴다. undo를 등록하지 않는다.
+    /// Replaces the whole text and moves the cursor to the end. Registers no undo.
     private func replaceAll(with text: String) {
         isReplacingProgrammatically = true
         defer { isReplacingProgrammatically = false }
@@ -167,8 +167,8 @@ final class PlainTextView: NSTextView {
         textView.scrollRangeToVisible(end)
     }
 
-    /// 지금 텍스트와 `old`를 맞바꾸는 undo 한 단계를 등록한다. 실행되면 반대 방향을 다시 등록해 redo가 된다.
-    /// 실행되면 텍스트를 바꾸고 두 표시를 비운 뒤 `onUserEdit`로 알린다.
+    /// Registers one undo step that swaps the current text with `old`. When run, it registers the opposite direction, which becomes redo.
+    /// When run, it replaces the text, clears both mark sets, and reports via `onUserEdit`.
     private func registerSwap(restoring old: String) {
         guard let undoManager = textView.undoManager else { return }
         let current = string

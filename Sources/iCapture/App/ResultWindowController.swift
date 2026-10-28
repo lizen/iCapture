@@ -2,21 +2,21 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// 결과 창이 보여 줄 상태. 진행 중인 세션이 있으면 그 변경을 그대로 전달해 화면을 다시 그리게 한다.
+/// State shown by the result window. Forwards changes from a running session so the view redraws.
 @MainActor
 final class ResultModel: ObservableObject {
-    /// 로컬 모델(자동)을 맨 앞에 둔다. 기본 엔진이고 비용이 들지 않는다.
+    /// Local model (auto) comes first. It's the default engine and costs nothing.
     static let baseChoices: [EngineChoice] = [.localAuto, .claude(.sonnet), .claude(.haiku)]
 
     @Published var image: NSImage?
-    /// 이력에서 다시 열었을 때는 nil이다(돌고 있는 세션 없음).
+    /// nil when reopened from history (no running session).
     @Published private(set) var session: RecognitionSession?
-    /// 세션 없이 이력을 열었을 때 상태 줄에 보여 줄 엔진 이름.
+    /// Engine name shown in the status line when history is opened without a session.
     @Published var historyEngineName = ""
     @Published var engineOptions: [EngineChoice] = ResultModel.baseChoices
-    /// "다시 인식"에만 쓴다. `settings.engine`은 바꾸지 않는다.
+    /// Used only for "Recognize Again". Does not change `settings.engine`.
     @Published var selectedEngine: EngineChoice = .localAuto
-    /// "검사 건너뛰기"를 누른 뒤에는 OCR이 끝날 때까지 `.verifying`이 남아 있어서 버튼을 따로 막는다.
+    /// After "Skip Check", `.verifying` lasts until OCR finishes, so the button is disabled separately.
     @Published var skipPressed = false
     @Published var canRecognizeAgain = false
 
@@ -37,7 +37,7 @@ final class ResultModel: ObservableObject {
         }
     }
 
-    /// 로컬(자동) + Claude 두 개 + 로컬 서버의 모델들. 지금 고른 엔진이 목록에 없으면(예: 로컬 서버가 꺼짐) 끝에 붙여 Picker가 비지 않게 한다.
+    /// Local (auto) + two Claude models + the local server's models. If the selected engine isn't listed (e.g. the server is down), it's appended so the Picker isn't empty.
     func setLocalLLMModels(_ ids: [String]) {
         var options = Self.baseChoices + ids.map { EngineChoice.localLLM(modelID: $0) }
         if !options.contains(selectedEngine) { options.append(selectedEngine) }
@@ -50,7 +50,7 @@ final class ResultModel: ObservableObject {
     }
 }
 
-/// 결과 창 하나를 앱이 끝날 때까지 다시 쓴다. 텍스트 영역(`RecognizedTextController`)도 창과 수명을 같이한다.
+/// One result window, reused until the app quits. The text area (`RecognizedTextController`) lives as long as the window.
 @MainActor
 final class ResultWindowController: NSObject, NSWindowDelegate {
     let textController = RecognizedTextController()
@@ -68,7 +68,7 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
         let window = window ?? makeWindow()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
-        // 다른 앱이 앞에 있어 활성화가 늦어져도 창은 앞에 보이게 한다.
+        // Keep the window in front even if activation is delayed because another app is frontmost.
         window.orderFrontRegardless()
         focusTextView(in: window)
     }
@@ -85,8 +85,8 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
 
     // MARK: - Private
 
-    /// 처음 만든 창은 호스팅 뷰가 아직 배치되지 않아 텍스트 뷰가 창에 붙어 있지 않을 수 있다.
-    /// 그러면 first responder가 되지 못해 클릭 전까지 ⌘A·⌘C가 듣지 않으므로, 배치를 끝내고 그래도 안 붙었으면 다음 차례에 다시 한다.
+    /// On first creation the hosting view may not be laid out yet, so the text view may not be in the window.
+    /// Then it can't become first responder and ⌘A/⌘C don't work until a click, so lay out first and retry on the next turn if still detached.
     private func focusTextView(in window: NSWindow) {
         window.layoutIfNeeded()
         let textView = textController.textView
@@ -114,7 +114,7 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
         window.delegate = self
 
         let hosting = NSHostingView(rootView: ResultView(model: model, text: textController))
-        // SwiftUI의 이상적 크기로 창을 줄이거나 늘리지 않게 최소 크기만 따른다.
+        // Follow only the minimum size so SwiftUI's ideal size doesn't shrink or grow the window.
         hosting.sizingOptions = [.minSize]
         window.contentView = hosting
         window.setContentSize(NSSize(width: 960, height: 560))
@@ -125,8 +125,8 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
         return window
     }
 
-    /// 텍스트 뷰가 first responder면 esc가 `cancelOperation:`(자동 완성)으로 먹힌다.
-    /// 그래서 진행 중에는 이 창의 esc를 먼저 가로채 취소로 쓴다.
+    /// When the text view is first responder, esc is swallowed as `cancelOperation:` (completion).
+    /// So while running, intercept esc in this window first and use it as cancel.
     private func installEscMonitor(for window: NSWindow) {
         escMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self, weak window] event in
             guard event.keyCode == 53 else { return event }

@@ -6,8 +6,8 @@ enum RecognitionPhase: Equatable, Sendable {
 }
 
 extension RecognitionPhase {
-    /// 이 단계로 끝난 세션의 결과(text·kind·엔진)로 이력 항목을 덮어써야 하는지.
-    /// 텍스트 없이 실패·취소되면 이전 결과를 지킨다(Ruling 14). 진행 중이면 false.
+    /// Whether a session that ended in this phase should overwrite the history entry with its result (text, kind, engine).
+    /// A failure or cancel with no text keeps the previous result (Ruling 14). false while still running.
     func shouldReplaceStoredResult(text: String) -> Bool {
         switch self {
         case .done: true
@@ -17,8 +17,8 @@ extension RecognitionPhase {
     }
 }
 
-/// 캡처 한 장의 인식 과정을 맡는 상태 기계.
-/// 엔진 스트림과 내장 OCR을 함께 돌리고, 끝나면 헷갈린 글자·검사로 바뀐 글자 표시를 계산한다.
+/// State machine for recognizing one capture.
+/// Runs the engine stream and the built-in OCR together, and computes look-alike and check-revision marks when done.
 @MainActor final class RecognitionSession: ObservableObject {
     let png: Data
     let engineChoice: EngineChoice
@@ -36,7 +36,7 @@ extension RecognitionPhase {
 
     private var hasStarted = false
     private var isCompleting = false
-    /// 끝나거나 취소되거나 검사를 건너뛸 때마다 올린다. 이전 세대의 작업이 상태를 바꾸지 못하게 막는다.
+    /// Bumped on every finish, cancel or skipped check. Stops work from an earlier generation from changing state.
     private var generation = 0
     private var work: Task<Void, Never>?
     private var ocrTask: Task<String, Error>?
@@ -144,7 +144,7 @@ extension RecognitionPhase {
         }
     }
 
-    /// 최종 본문을 정하고, OCR 결과를 기다려 헷갈린 글자 표시를 계산한 뒤 `.done`으로 끝낸다.
+    /// Settles the final body, waits for the OCR result, computes look-alike marks, then finishes as `.done`.
     private func complete(kind: TextKind, body: String, token: Int) async {
         isCompleting = true
         self.kind = kind
@@ -161,7 +161,7 @@ extension RecognitionPhase {
         phase = .failed(error as? RecognitionError ?? .network(String(describing: error)))
     }
 
-    /// 진행 중인 작업을 모두 끊고 끝난 시각을 남긴다. 이후 도착하는 이벤트와 결과는 무시된다.
+    /// Stops all in-flight work and records the finish time. Events and results arriving later are ignored.
     private func stop() {
         generation += 1
         work?.cancel()

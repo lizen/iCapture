@@ -1,8 +1,8 @@
 import Foundation
 
 enum ClaudeFixtures {
-    /// Claude Messages API 스트림 모양의 SSE 본문.
-    /// `message_start` → (선택) thinking 블록 → 텍스트 블록 델타들 → `message_delta` → `message_stop`.
+    /// SSE body shaped like a Claude Messages API stream.
+    /// `message_start` -> (optional) thinking block -> text block deltas -> `message_delta` -> `message_stop`.
     static func sse(_ chunks: [String], thinkingFirst: Bool = false, stopReason: String = "end_turn") -> String {
         var out = ""
         out += event("message_start", ["type": "message_start", "message": ["id": "msg_1", "role": "assistant"]])

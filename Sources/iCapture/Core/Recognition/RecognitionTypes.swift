@@ -20,19 +20,19 @@ enum ClaudeModel: String, Codable, CaseIterable, Sendable {
     case haiku = "claude-haiku-5-5"
 }
 
-/// `.localLLM`은 Nativ·Ollama·vLLM·LM Studio처럼 OpenAI 호환 API를 여는 로컬 LLM 서버다. `modelID`가 비어 있으면
-/// 인식할 때 서버의 모델 목록에서 이미지를 읽을 수 있어 보이는 모델을 고른다.
+/// `.localLLM` is a local LLM server that serves an OpenAI-compatible API, such as Nativ, Ollama, vLLM or LM Studio. With an empty `modelID`,
+/// a model that looks able to read images is picked from the server's model list at recognition time.
 enum EngineChoice: Codable, Hashable, Sendable {
     case claude(ClaudeModel)
     case localLLM(modelID: String)
 
-    /// 저장 형식은 이전 이름(`nativ`)을 그대로 쓴다. 이미 저장된 엔진 선택을 잃지 않기 위해서다.
+    /// The stored format keeps the old name (`nativ`) so saved engine choices aren't lost.
     private enum CodingKeys: String, CodingKey {
         case claude
         case localLLM = "nativ"
     }
 
-    /// 기본 엔진. API 비용이 들지 않는 로컬 서버를 쓰고, 모델은 서버에 올라간 것 중에서 고른다.
+    /// The default engine. Uses a local server at no API cost and picks a model loaded on that server.
     static let localAuto = EngineChoice.localLLM(modelID: "")
 
     var displayName: String {
@@ -45,8 +45,8 @@ enum EngineChoice: Codable, Hashable, Sendable {
     }
 }
 
-/// `textDelta`는 종류 태그를 포함한 원문 조각이다. `verifying`과 `revisedText`(원문 전체)는
-/// 검사 단계가 있는 엔진만 보낸다. v1의 두 엔진은 보내지 않는다.
+/// `textDelta` is a raw chunk including the content-type tag. `verifying` and `revisedText` (the full raw text)
+/// are sent only by engines with a check step. Neither v1 engine sends them.
 enum RecognitionEvent: Equatable, Sendable {
     case textDelta(String)
     case verifying
@@ -63,7 +63,7 @@ enum RecognitionError: Error, Equatable, Sendable {
     case http(status: Int, message: String)
     case refusal
     case truncated
-    /// Nativ 서버가 200이 아닌 응답을 줬다. 401은 Claude가 아니라 Nativ 키를 안내해야 해서 `.http`와 나눈다.
+    /// The local server returned a non-200 response. Kept apart from `.http` so a 401 points at the local key, not Claude's.
     case localLLMHTTP(status: Int, message: String)
     case localLLMUnreachable(url: String)
     case noLocalLLMModel
@@ -99,12 +99,12 @@ enum RecognitionError: Error, Equatable, Sendable {
 }
 
 extension RecognitionError {
-    /// 200이 아닌 응답의 본문으로 에러를 만든다. 본문이 `{"error":{"message":…}}`면 그 메시지를, 아니면 본문 문자열을 쓴다.
+    /// Builds an error from a non-200 response body: the message from `{"error":{"message":…}}`, otherwise the body text.
     static func httpFailure(status: Int, body: Data) -> RecognitionError {
         .http(status: status, message: errorMessage(from: body))
     }
 
-    /// Nativ 서버용. 본문 해석은 `httpFailure`와 같다.
+    /// For the local server. Parses the body the same way as `httpFailure`.
     static func localLLMHTTPFailure(status: Int, body: Data) -> RecognitionError {
         .localLLMHTTP(status: status, message: errorMessage(from: body))
     }

@@ -1,12 +1,12 @@
 import Foundation
 
 enum MarkRanges {
-    /// 사용자가 글을 고친 뒤 표시 범위를 맞춘다. `editedRange`는 편집 **후** 범위(`NSTextStorage` 기준)다.
-    /// 편집 전 범위와 겹치는 표시는 버리고, 그 뒤에 있는 표시는 `changeInLength`만큼 민다.
-    /// 길이 0인 삽입은 표시의 안쪽(시작보다 크고 끝보다 작은 위치)일 때만 겹친 것으로 본다.
+    /// Adjusts mark ranges after a user edit. `editedRange` is the range **after** the edit (as reported by `NSTextStorage`).
+    /// Marks overlapping the pre-edit range are dropped; marks after it shift by `changeInLength`.
+    /// A zero-length insertion counts as overlapping only strictly inside a mark (after its start, before its end).
     static func adjust(_ ranges: [NSRange], editedRange: NSRange, changeInLength: Int) -> [NSRange] {
         let start = editedRange.location
-        let end = start + editedRange.length - changeInLength  // 편집 전 범위의 끝
+        let end = start + editedRange.length - changeInLength  // end of the pre-edit range
 
         var result: [NSRange] = []
         for mark in ranges {

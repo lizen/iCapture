@@ -3,7 +3,7 @@ import XCTest
 final class ConfusionMarkerTests: XCTestCase {
     func testMarksL1Disagreement() {
         let m = ConfusionMarker.marks(candidate: "WHERE u.level = 1", reference: "WHERE u.1evel = 1", kind: .sql)
-        XCTAssertEqual(m, [NSRange(location: 8, length: 1)])  // candidate의 'l'
+        XCTAssertEqual(m, [NSRange(location: 8, length: 1)])  // the 'l' in candidate
     }
 
     func testNoMarksWhenIdentical() {
@@ -24,7 +24,7 @@ final class ConfusionMarkerTests: XCTestCase {
     }
 
     func testUTF16OffsetsAfterKorean() {
-        // "회원 l" — '회','원' 은 각각 UTF-16 1칸
+        // The two Hangul syllables before 'l' are one UTF-16 unit each
         XCTAssertEqual(
             ConfusionMarker.marks(candidate: "회원 l", reference: "회원 1", kind: .other), [NSRange(location: 3, length: 1)])
     }

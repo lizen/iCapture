@@ -6,14 +6,14 @@ protocol OCRProvider: Sendable {
     func recognizeText(png: Data) async throws -> String
 }
 
-/// Apple Vision으로 읽는 내장 OCR. AI 결과와 비교하는 두 번째 눈이라서 언어 교정은 끈다.
+/// Built-in OCR via Apple Vision. It's a second reader to compare against the AI result, so language correction is off.
 struct VisionOCR: OCRProvider {
     enum OCRError: Error, Equatable {
         case invalidImage
     }
 
     func recognizeText(png: Data) async throws -> String {
-        // VNImageRequestHandler.perform은 동기 호출이라 메인 액터 밖에서 돌린다.
+        // VNImageRequestHandler.perform is synchronous, so run it off the main actor.
         try await Task.detached(priority: .userInitiated) {
             guard let source = CGImageSourceCreateWithData(png as CFData, nil),
                   let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
@@ -34,7 +34,7 @@ struct VisionOCR: OCRProvider {
         }.value
     }
 
-    /// 위에서 아래로 정렬하고, 세로 중심 차이가 더 작은 상자 높이의 절반보다 작으면 같은 줄로 묶는다.
+    /// Sorts top to bottom and groups boxes into one line when their vertical centers differ by less than half the smaller box height.
     private static func lines(from observations: [VNRecognizedTextObservation]) -> [[VNRecognizedTextObservation]] {
         var lines: [[VNRecognizedTextObservation]] = []
         for observation in observations.sorted(by: { $0.boundingBox.midY > $1.boundingBox.midY }) {

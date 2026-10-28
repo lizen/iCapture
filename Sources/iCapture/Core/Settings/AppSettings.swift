@@ -1,7 +1,7 @@
 import Foundation
 
-/// 엔진 선택·로컬 서버(Nativ·Ollama·vLLM) 주소·단축키. 값이 바뀌면 곧바로 UserDefaults에 저장한다.
-/// 저장된 값이 없거나 읽을 수 없으면 기본값을 쓴다.
+/// Engine choice, local server (Nativ, Ollama, vLLM) URL, and hotkey. Saved to UserDefaults as soon as a value changes.
+/// Defaults are used when nothing is saved or a value can't be read.
 @MainActor
 final class AppSettings: ObservableObject {
     static let defaultBaseLLMURL = URL(string: "http://127.0.0.1:8080")!
@@ -25,7 +25,7 @@ final class AppSettings: ObservableObject {
         hotKey = Self.load(HotKeyCombo.self, forKey: "hotKey", from: defaults) ?? .default
     }
 
-    /// 앞뒤 공백을 지운 뒤 http·https 주소이고 호스트가 있을 때만 URL을 돌려준다. 아니면 nil(설정 창은 이전 값을 지킨다).
+    /// Returns a URL only for a trimmed http or https address with a host; otherwise nil (the settings window keeps the previous value).
     static func validatedBaseLLMURL(_ text: String) -> URL? {
         guard let url = URL(string: text.trimmingCharacters(in: .whitespaces)),
               let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",

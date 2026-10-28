@@ -6,7 +6,7 @@ enum ScreenRecordingPermission {
         CGPreflightScreenCaptureAccess()
     }
 
-    /// 시스템 권한 프롬프트를 띄운다. 이미 허용돼 있으면 true.
+    /// Shows the system permission prompt. Returns true if already granted.
     static func request() -> Bool {
         CGRequestScreenCaptureAccess()
     }

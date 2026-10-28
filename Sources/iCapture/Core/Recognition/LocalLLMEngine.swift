@@ -1,10 +1,10 @@
 import Foundation
 
-/// Nativ·Ollama·vLLM 같은 OpenAI 호환 로컬 서버. `modelID`가 비어 있으면 인식할 때 `LocalLLMModels.preferredVisionModel`로 고른다.
+/// An OpenAI-compatible local server such as Nativ, Ollama or vLLM. With an empty `modelID`, `LocalLLMModels.preferredVisionModel` picks one at recognition time.
 struct LocalLLMEngine: RecognitionEngine {
-    /// vLLM은 프롬프트 + `max_tokens`가 모델 문맥 길이를 넘으면 400을 돌려준다. 화면 캡처 한 장의 텍스트는 이 안에 들어간다.
+    /// vLLM returns 400 when the prompt plus `max_tokens` exceeds the model's context length. One screen capture's text fits within this.
     static let maxTokens = 4096
-    /// 로컬 모델은 큰 이미지에서 첫 토큰까지 1분을 넘기기도 해서 기본값(60초)보다 길게 기다린다.
+    /// Local models can take over a minute to the first token on large images, so wait longer than the default (60 seconds).
     static let requestTimeout: TimeInterval = 300
 
     let baseURL: URL
@@ -30,7 +30,7 @@ struct LocalLLMEngine: RecognitionEngine {
             "model": model,
             "stream": true,
             "max_tokens": Self.maxTokens,
-            // 받아쓰기는 가장 그럴듯한 글자 하나만 필요하다. 샘플링을 끄면 없는 글자를 지어내는 일이 준다.
+            // Transcription only needs the single most likely character. Turning sampling off reduces invented characters.
             "temperature": 0,
             "messages": [
                 ["role": "system", "content": RecognitionPrompt.system],
@@ -100,7 +100,7 @@ struct LocalLLMEngine: RecognitionEngine {
             guard let payload = try? JSONSerialization.jsonObject(with: Data(event.data.utf8)) as? [String: Any],
                   let choice = (payload["choices"] as? [[String: Any]])?.first
             else { return }
-            // 첫 조각은 보통 `"role":"assistant","content":""`뿐이다. 빈 조각은 보내지 않는다.
+            // The first chunk is usually just `"role":"assistant","content":""`. Empty chunks are not forwarded.
             if let text = (choice["delta"] as? [String: Any])?["content"] as? String, !text.isEmpty {
                 continuation.yield(.textDelta(text))
             }
@@ -116,7 +116,7 @@ struct LocalLLMEngine: RecognitionEngine {
         }
     }
 
-    /// 서버에 닿지 못한 오류는 `.localLLMUnreachable`로, 시간 초과는 `.timedOut`으로, 나머지는 `.network`로 바꾼다.
+    /// Maps errors that never reached the server to `.localLLMUnreachable`, timeouts to `.timedOut`, and everything else to `.network`.
     static func recognitionError(for error: URLError, baseURL: URL) -> RecognitionError {
         switch error.code {
         case .cannotConnectToHost, .networkConnectionLost, .cannotFindHost:
@@ -130,10 +130,10 @@ struct LocalLLMEngine: RecognitionEngine {
 }
 
 enum LocalLLMModels {
-    /// 모델 목록은 창을 열 때마다 받으므로, 서버가 멈춰 있으면 오래 붙잡지 않는다.
+    /// The model list is fetched every time a window opens, so don't hang on a stalled server.
     static let requestTimeout: TimeInterval = 10
 
-    /// `GET /v1/models`의 `data[].id`. 모델이 하나도 없으면 `.noLocalLLMModel`을 던진다.
+    /// `data[].id` from `GET /v1/models`. Throws `.noLocalLLMModel` when there are no models.
     static func list(baseURL: URL, apiKey: String?, session: URLSession = .shared) async throws -> [String] {
         let request = makeRequest(baseURL: baseURL, apiKey: apiKey)
         let data: Data, response: URLResponse
@@ -149,7 +149,7 @@ enum LocalLLMModels {
         }
 
         let entries = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["data"] as? [[String: Any]] ?? []
-        // Nativ는 받아 둔 모델을 모두 알려 주고 `loaded`로 메모리에 올라간 것을 표시한다. 올라간 모델을 앞에 둔다.
+        // Nativ lists every downloaded model and marks the ones in memory with `loaded`. Loaded models go first.
         let loaded = entries.filter { $0["loaded"] as? Bool == true }
         let others = entries.filter { $0["loaded"] as? Bool != true }
         let ids = (loaded + others).compactMap { $0["id"] as? String }
@@ -157,9 +157,9 @@ enum LocalLLMModels {
         return ids
     }
 
-    /// 이름으로 보아 이미지를 읽을 수 있는 모델을 먼저 고르고, 없으면 첫 모델을 쓴다.
-    /// Nativ는 언어·임베딩·음성 모델을 함께 올려 둘 수 있어서 목록의 첫 모델이 비전 모델이 아닐 수 있다.
-    /// `ids`는 비어 있지 않다(`list`가 빈 목록이면 던진다).
+    /// Picks a model whose name suggests it can read images, falling back to the first model.
+    /// Nativ can keep language, embedding and speech models loaded together, so the first model may not be a vision model.
+    /// `ids` is never empty (`list` throws on an empty list).
     static func preferredVisionModel(_ ids: [String]) -> String {
         let hints = ["vl", "vision", "llava", "pixtral", "gemma-3", "gemma3", "idefics", "smolvlm", "minicpm-v", "molmo"]
         let notChat = ["embed", "rerank", "whisper", "tts"]

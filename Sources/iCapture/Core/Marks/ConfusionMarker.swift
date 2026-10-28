@@ -1,7 +1,7 @@
 import Foundation
 
-/// AI 결과(candidate)와 내장 OCR 결과(reference)를 글자 단위로 비교해,
-/// 모양이 비슷한 글자끼리 엇갈린 자리(예: `l` ↔ `1`)를 candidate 기준 UTF-16 범위로 돌려준다.
+/// Compares the AI result (candidate) with the built-in OCR result (reference) character by character and returns,
+/// as UTF-16 ranges in the candidate, the spots where look-alike characters disagree (e.g. `l` <-> `1`).
 enum ConfusionMarker {
     static func marks(candidate: String, reference: String, kind: TextKind) -> [NSRange] {
         let isTable = kind == .table
@@ -49,7 +49,7 @@ enum ConfusionMarker {
 
     private static let defaultGroupIndex = groupIndex(of: confusionGroups)
 
-    /// 표에서는 `|`가 Markdown 표 기호라서 첫 그룹에서 뺀다.
+    /// In tables `|` is Markdown table syntax, so it's removed from the first group.
     private static let tableGroupIndex: [Character: Int] = {
         var groups = confusionGroups
         groups[0].removeAll { $0 == "|" }
@@ -65,21 +65,21 @@ enum ConfusionMarker {
     }
 }
 
-// MARK: - ConfusionMarker와 TextDiff가 같이 쓰는 비교 도구
+// MARK: - Comparison helpers shared by ConfusionMarker and TextDiff
 
-/// 공백을 뺀 뒤에도 원래 문자열에서의 UTF-16 위치를 기억하는 글자 하나.
+/// One character that remembers its UTF-16 range in the original string after whitespace is removed.
 struct OffsetCharacter {
     let character: Character
     let range: NSRange
 }
 
-/// 두 글자 배열을 맞춘 뒤 맞지 않고 남은 덩어리 하나(둘 중 한쪽은 비어 있을 수 있다).
+/// One unmatched chunk left after aligning the two character arrays (either side may be empty).
 struct DiffHunk {
     var candidate: [OffsetCharacter] = []
     var reference: [OffsetCharacter] = []
 }
 
-/// 공백류를 빼고(`dropTableSymbols`가 true면 `|` `-` `:`도 뺀다) 글자마다 UTF-16 범위를 붙인다.
+/// Drops whitespace (and `|` `-` `:` when `dropTableSymbols` is true) and attaches each character's UTF-16 range.
 func filteredCharacters(_ string: String, dropTableSymbols: Bool) -> [OffsetCharacter] {
     var result: [OffsetCharacter] = []
     var offset = 0
@@ -93,7 +93,7 @@ func filteredCharacters(_ string: String, dropTableSymbols: Bool) -> [OffsetChar
     return result
 }
 
-/// 최장 공통 부분열(LCS)로 두 배열을 맞추고, 맞지 않은 글자를 덩어리로 묶는다.
+/// Aligns the two arrays by longest common subsequence (LCS) and groups unmatched characters into chunks.
 func diffHunks(candidate: [OffsetCharacter], reference: [OffsetCharacter]) -> [DiffHunk] {
     let difference = candidate.map(\.character).difference(from: reference.map(\.character))
     var removed = Set<Int>()
@@ -122,7 +122,7 @@ func diffHunks(candidate: [OffsetCharacter], reference: [OffsetCharacter]) -> [D
             current.reference.append(reference[j])
             j += 1
         } else {
-            flush()  // 서로 맞는 글자 한 쌍
+            flush()  // a matched pair of characters
             i += 1
             j += 1
         }
@@ -131,7 +131,7 @@ func diffHunks(candidate: [OffsetCharacter], reference: [OffsetCharacter]) -> [D
     return hunks
 }
 
-/// 정렬하고, 겹치거나 맞닿은 범위를 하나로 합친다. 길이 0인 범위는 버린다.
+/// Sorts, then merges overlapping or touching ranges. Zero-length ranges are dropped.
 func mergedRanges(_ ranges: [NSRange]) -> [NSRange] {
     var result: [NSRange] = []
     for range in ranges.filter({ $0.length > 0 }).sorted(by: { $0.location < $1.location }) {

@@ -5,7 +5,7 @@ struct SSEEvent: Equatable {
     var data: String
 }
 
-/// Server-Sent Events 줄 파서. 줄을 하나씩 넣다가 빈 줄을 만나면 이벤트 하나를 돌려준다.
+/// Line parser for Server-Sent Events. Feed lines one by one; a blank line yields one event.
 struct SSEParser {
     private var event: String?
     private var dataLines: [String] = []
@@ -38,8 +38,8 @@ struct SSEParser {
 }
 
 extension SSEParser {
-    /// 바이트 스트림을 줄로 나눠 이벤트마다 `handle`을 부른다.
-    /// `bytes.lines`는 빈 줄을 건너뛰어서 SSE의 이벤트 경계가 사라진다. 그래서 직접 줄을 나눈다.
+    /// Splits a byte stream into lines and calls `handle` for each event.
+    /// `bytes.lines` skips blank lines, which erases SSE event boundaries, so lines are split by hand.
     static func forEachEvent(
         in bytes: URLSession.AsyncBytes,
         _ handle: (SSEEvent) throws -> Void
@@ -56,7 +56,7 @@ extension SSEParser {
                 line.append(byte)
             }
         }
-        // 마지막 줄이 개행 없이 끝났다면 먼저 넣고, 빈 줄로 남은 이벤트를 마무리한다.
+        // If the last line ended without a newline, feed it first, then finish the pending event with a blank line.
         if !line.isEmpty { _ = parser.feed(line: String(decoding: line, as: UTF8.self)) }
         if let event = parser.feed(line: "") { try handle(event) }
     }

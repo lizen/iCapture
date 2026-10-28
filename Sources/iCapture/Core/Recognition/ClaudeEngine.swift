@@ -1,14 +1,14 @@
 import Foundation
 
 struct ClaudeEngine: RecognitionEngine {
-    // Task 12의 정확도 측정 결과를 보고 조정할 값들.
+    // Values to tune based on the Task 12 accuracy results.
     static let endpoint = URL(string: "https://api.anthropic.com/v1/messages")!
     static let apiVersion = "2026-10-21"
     static let maxTokens = 16000
     static let effort = "medium"
     static let sonnetThinkingType = "between_tools"
     static let haikuThinkingType = "disabled"
-    /// 모델이 거절할 때 서버가 다른 모델로 다시 돌려 주는 기능의 베타 헤더. Sonnet 전용.
+    /// Beta header for server-side fallback, which reruns on another model when this one refuses. Sonnet only.
     static let fallbackBeta = "server-side-fallback-2026-07-01"
     static let fallbacks = "default"
 
