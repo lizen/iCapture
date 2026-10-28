@@ -1,6 +1,7 @@
 .PHONY: xcode-generate xcode-build xcode-run test accuracy dmg clean
 
-XCODE_DERIVED_DATA ?= build/DerivedData
+# The .noindex suffix keeps Spotlight and the Apps list from showing every build copy of iCapture.app.
+XCODE_DERIVED_DATA ?= build/DerivedData.noindex
 ICAPTURE_APP := $(XCODE_DERIVED_DATA)/Build/Products/Debug/iCapture.app
 export DEVELOPER_DIR ?= /Applications/Xcode.app/Contents/Developer
 

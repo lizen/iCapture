@@ -12,9 +12,9 @@ fail() {
     exit 1
 }
 
-derived_data="${XCODE_DERIVED_DATA:-build/DerivedData}"
+derived_data="${XCODE_DERIVED_DATA:-build/DerivedData.noindex}"
 app="$derived_data/Build/Products/Release/iCapture.app"
-staging="build/dmg"
+staging="build/dmg.noindex"
 
 xcodebuild -project iCapture.xcodeproj -scheme iCapture -configuration Release \
     -destination 'generic/platform=macOS' -derivedDataPath "$derived_data" build -quiet
