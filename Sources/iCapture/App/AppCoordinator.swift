@@ -63,14 +63,23 @@ final class AppCoordinator: NSObject {
         isCapturing = true
         Task {
             defer { isCapturing = false }
+            // Activating the app for the overlay would bring an open result, history or settings window forward and hand it key,
+            // which cancels the selection. Hide them until the region is captured, so the result window appears only afterwards.
+            let openWindows = NSApp.windows.filter { $0.isVisible && $0.styleMask.contains(.titled) }
+            openWindows.forEach { $0.orderOut(nil) }
             // Dismissing the selection with esc leaves a running recognition alone. The previous session ends only after a region is chosen.
-            guard let selection = await overlay.selectRegion() else { return }
+            guard let selection = await overlay.selectRegion() else {
+                openWindows.forEach { $0.orderFront(nil) }
+                return
+            }
             finishCurrentSession()
             do {
                 let image = try await ScreenCapturer().capture(rect: selection.rect, on: selection.screen)
+                openWindows.forEach { $0.orderFront(nil) }
                 let png = try ImageEncoder.png(from: image)
                 beginCapture(png: png, image: NSImage(cgImage: image, size: selection.rect.size))
             } catch {
+                openWindows.forEach { $0.orderFront(nil) }
                 NSLog("iCapture capture failed: %@", String(describing: error))
                 showCaptureFailedAlert(error)
             }
