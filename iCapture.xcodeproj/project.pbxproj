@@ -98,6 +98,7 @@
 		A693FCB3A3215C60FBA61D31 /* ImageEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A348F5DCF69052EF49F7AE81 /* ImageEncoderTests.swift */; };
 		AA2BF4101CA1984C05096DD5 /* AppSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C2EFC367BE7283E1C9429A /* AppSettingsTests.swift */; };
 		ACB216603211D7E2288E506E /* RecognizedTextController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611ADEF29BBED5AE39996C8B /* RecognizedTextController.swift */; };
+		ADD53AEE6B3B319AD6642EF4 /* AppSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EA97713FE70A16A69AB543 /* AppSwitcher.swift */; };
 		AFC3767CAE9C832EE4CAC61F /* TextDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4176609FE218A88760E46DB5 /* TextDiff.swift */; };
 		B1070CC2DC82D3EED7DCBB4C /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A42ED2B2C0AB55B9CA85BD /* AppLanguage.swift */; };
 		B35D4890FA6FF1D7623D844D /* HotKeyCombo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5289984176E98F11EEFCC028 /* HotKeyCombo.swift */; };
@@ -180,6 +181,7 @@
 		696BADCE5B555DFBF61442F8 /* StubURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocol.swift; sourceTree = "<group>"; };
 		6A8F4686099BDC4740B6C361 /* LocalLLMEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLLMEngineTests.swift; sourceTree = "<group>"; };
 		6ADDB4D48F7247D6CDCF23A6 /* AppRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRelauncher.swift; sourceTree = "<group>"; };
+		73EA97713FE70A16A69AB543 /* AppSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSwitcher.swift; sourceTree = "<group>"; };
 		7476DD16DC7B1945C29B16CA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7DDB273C72FD75F72200F06E /* ConfusionMarker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfusionMarker.swift; sourceTree = "<group>"; };
 		820A0D00EC146E35C88339D9 /* CaptureGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureGeometryTests.swift; sourceTree = "<group>"; };
@@ -340,6 +342,7 @@
 				C38F4D8ACF5F877B7F815FB6 /* AppCoordinator.swift */,
 				C90ED2471E87E8A4548D6286 /* AppDelegate.swift */,
 				6ADDB4D48F7247D6CDCF23A6 /* AppRelauncher.swift */,
+				73EA97713FE70A16A69AB543 /* AppSwitcher.swift */,
 				1C5F492D256F665592967F5C /* HistoryView.swift */,
 				4A011E9757A6CEBAB70D9879 /* HistoryWindowController.swift */,
 				856ECF8911E0690739C4F34A /* HotKeyMonitor.swift */,
@@ -752,6 +755,7 @@
 				B1070CC2DC82D3EED7DCBB4C /* AppLanguage.swift in Sources */,
 				DF8D8CDB418C8FD3154E02EE /* AppRelauncher.swift in Sources */,
 				76BB9D1C2FEB96C47DB0073B /* AppSettings.swift in Sources */,
+				ADD53AEE6B3B319AD6642EF4 /* AppSwitcher.swift in Sources */,
 				C89F861C91C5BE6DFBE8336B /* CaptureGeometry.swift in Sources */,
 				FBC8084D938A82ABB38DECCA /* ClaudeEngine.swift in Sources */,
 				CA196E1F295504B5A1173DFE /* ConfusionMarker.swift in Sources */,

@@ -62,9 +62,7 @@ final class HistoryWindowController: NSObject, NSWindowDelegate {
     func show() {
         let window = window ?? makeWindow()
         model.reload()
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
-        window.orderFrontRegardless()
+        AppSwitcher.show(window)
     }
 
     /// Reloads only while the window is open. The coordinator calls this after the result window saves history.
@@ -90,6 +88,10 @@ final class HistoryWindowController: NSObject, NSWindowDelegate {
 
     func windowDidBecomeKey(_ notification: Notification) {
         model.reload()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        AppSwitcher.windowWillClose(notification)
     }
 
     // MARK: - Private

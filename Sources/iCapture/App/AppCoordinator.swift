@@ -65,21 +65,26 @@ final class AppCoordinator: NSObject {
             defer { isCapturing = false }
             // Activating the app for the overlay would bring an open result, history or settings window forward and hand it key,
             // which cancels the selection. Hide them until the region is captured, so the result window appears only afterwards.
+            let keyWindow = NSApp.keyWindow
             let openWindows = NSApp.windows.filter { $0.isVisible && $0.styleMask.contains(.titled) }
             openWindows.forEach { $0.orderOut(nil) }
+            let restoreWindows = {
+                openWindows.forEach { $0.orderFront(nil) }
+                keyWindow?.makeKey()
+            }
             // Dismissing the selection with esc leaves a running recognition alone. The previous session ends only after a region is chosen.
             guard let selection = await overlay.selectRegion() else {
-                openWindows.forEach { $0.orderFront(nil) }
+                restoreWindows()
                 return
             }
             finishCurrentSession()
             do {
                 let image = try await ScreenCapturer().capture(rect: selection.rect, on: selection.screen)
-                openWindows.forEach { $0.orderFront(nil) }
+                restoreWindows()
                 let png = try ImageEncoder.png(from: image)
                 beginCapture(png: png, image: NSImage(cgImage: image, size: selection.rect.size))
             } catch {
-                openWindows.forEach { $0.orderFront(nil) }
+                restoreWindows()
                 NSLog("iCapture capture failed: %@", String(describing: error))
                 showCaptureFailedAlert(error)
             }
@@ -417,7 +422,7 @@ final class AppCoordinator: NSObject {
 
     // MARK: - Main menu
 
-    /// LSUIElement apps show no menu bar, but in-window shortcuts like ⌘C, ⌘Z and ⌘W only work if mainMenu has the items.
+    /// The menu bar shows only while a window is open (see `AppSwitcher`), but in-window shortcuts like ⌘C, ⌘Z and ⌘W need these items regardless.
     private func installMainMenu() {
         let mainMenu = NSMenu()
 
@@ -443,6 +448,8 @@ final class AppCoordinator: NSObject {
         addSubmenu(windowMenu, to: mainMenu)
 
         NSApp.mainMenu = mainMenu
+        // AppKit lists the open windows here, so they can be picked from the menu and the Dock icon.
+        NSApp.windowsMenu = windowMenu
     }
 
     private func menuItem(

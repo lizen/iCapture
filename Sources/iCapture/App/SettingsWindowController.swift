@@ -65,9 +65,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         let window = window ?? makeWindow()
         // If already open, don't reload, so values being edited are kept.
         if !window.isVisible { load() }
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
-        window.orderFrontRegardless()
+        AppSwitcher.show(window)
     }
 
     // MARK: - NSWindowDelegate
@@ -86,6 +84,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         model.llmKey = ""
         savedClaudeKey = ""
         savedLLMKey = ""
+        AppSwitcher.windowWillClose(notification)
     }
 
     // MARK: - Reading and committing values

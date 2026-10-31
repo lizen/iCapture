@@ -55,7 +55,7 @@ iCapture sends the capture to a **vision language model** that reads in context:
 | **Content-aware output** | SQL, logs, tables and spreadsheets are detected automatically. Tables become Markdown tables; spreadsheet column letters (A, B, C…) and row numbers (1, 2, 3…) are stripped. |
 | **Local LLM first** | Runs on a local OpenAI-compatible server by default — Nativ, Ollama, LM Studio, vLLM — at no cost. Claude Sonnet 5.5 and Haiku 5.5 are available as optional engines. |
 | **Recent history** | The last 10 captures are kept. The 5 most recent are one click away in the menu bar; the history window (`⌘Y`) lets you search all 10. |
-| **Menu bar only** | No Dock icon. The menu bar icon pulses while recognizing and shows a green dot when a result is ready in the background. |
+| **Menu bar first** | Lives in the menu bar, with a Dock icon and a place in `⌘Tab` only while one of its windows is open. The menu bar icon pulses while recognizing and shows a green dot when a result is ready in the background. |
 
 ## How it works
 

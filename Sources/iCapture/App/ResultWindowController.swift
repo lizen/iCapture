@@ -66,10 +66,7 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
 
     func show() {
         let window = window ?? makeWindow()
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
-        // Keep the window in front even if activation is delayed because another app is frontmost.
-        window.orderFrontRegardless()
+        AppSwitcher.show(window)
         focusTextView(in: window)
     }
 
@@ -77,6 +74,7 @@ final class ResultWindowController: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         onClose?()
+        AppSwitcher.windowWillClose(notification)
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
